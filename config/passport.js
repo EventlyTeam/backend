@@ -5,25 +5,8 @@ const LocalStrategy = require('passport-local').Strategy;
 const GoogleStrategy = require('passport-google-oauth2').Strategy;
 
 const User = require('../models/user');
+const { password } = require('pg/lib/defaults');
 
-// Serialize user (stores user id in session)
-passport.serializeUser((user, done) => {
-    console.log(user)
-    done(null, user.id);
-});
-
-// Deserialize user (retrieves user data based on id in session)
-passport.deserializeUser((id, done) => {
-    User.findByPk(id)
-        .then(user => {
-            done(null, user);
-        })
-        .catch(err => {
-            done(err, null);
-        });
-});
-
-// Local Strategy for authentication with email and password
 passport.use(
     new LocalStrategy(
         {
@@ -45,6 +28,35 @@ passport.use(
                 return done(null, user);
             } catch (error) {
                 return done(error);
+            }
+        }
+    )
+);
+
+passport.use(
+    new GoogleStrategy(
+        {
+            clientID: process.env.GOOGLE_CLIENT_ID,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+            callbackURL: `${process.env.SERVER_URL}${process.env.GOOGLE_CALLBACK_URL}`
+        },
+        async function (accessToken, refreshToken, profile, done) {
+            try {
+                let user = await User.findOne(
+                    { where: { username: profile.email } }
+                );
+
+                if (!user) {
+                    user = await User.create({
+                            username: profile.email,
+                            password: null
+                    });
+                }
+                
+                return done(null, user)
+            } catch(err) {
+                console.log(err.message);
+                return done(err);
             }
         }
     )

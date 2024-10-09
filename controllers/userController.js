@@ -42,6 +42,26 @@ class UserController {
         })(req, res, next);
     }
 
+    async googleAuth(req, res, next) {
+        passport.authenticate('google', {
+            scope: ['email', 'profile']
+        })(req, res);
+    }
+
+    async googleAuthCallback(req, res, next) {
+        passport.authenticate('google', { session: false }, (err, user, _) => {
+            if (err) {
+                return next(err);
+            }
+            if (!user) {
+                return res.redirect('/');
+            }
+            
+            const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+            return res.status(200).json({ message: 'Login successful', token });
+        })(req, res, next);
+    }
+
     async logout(req, res, next) {
         req.logout(function (err) {
             if (err) {

@@ -1,7 +1,6 @@
 const jwt = require('jsonwebtoken');
 
 const {non_authorized} = require('../error/ApiError');
-const ApiError = require('../error/ApiError');
 
 module.exports = function (req, res, next) {
     const token = req.headers.authorization?.split(' ')[1];

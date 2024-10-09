@@ -1,12 +1,13 @@
 require('dotenv').config()
 const PORT = process.env.PORT || 5000
+const path = require('path');
 
 const cors = require('cors')
 const express = require('express')
 const session = require('express-session')
 
-const errorHandler = require('./middleware/errorHandlingMiddleware.js')
-const sequelize = require('./config/sequelize.js');
+const errorHandler = require('./middleware/errorHandlingMiddleware')
+const sequelize = require('./config/sequelize');
 const router = require('./routes/index')
 const passport = require('./config/passport');
 
@@ -40,7 +41,7 @@ app.use(errorHandler)
 sequelize.authenticate()
   .then(() => {
     console.log('Connection has been established successfully.');
-    return sequelize.sync();
+    return sequelize.sync({ alter: true, force: true });
   })
   .catch((error) => {
     console.error('Unable to connect to the database:', error);
