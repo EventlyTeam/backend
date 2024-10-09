@@ -1,7 +1,6 @@
-
 function validateEmail(email) {
     const emailRegex = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
-    return emailRegex.test(username)
+    return emailRegex.test(email)
 }
 
 /*
@@ -18,4 +17,7 @@ function validatePassword(password) {
     return passwordRegex.test(password)
 }
 
-module.exports = validateEmail, validatePassword;
+module.exports =  {
+    validateEmail,
+    validatePassword,
+};

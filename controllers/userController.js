@@ -5,20 +5,25 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/user')
 const ApiError = require('../error/ApiError')
 
-const { validateEmail, validateUsername } = require('../utils/Validation')
+const { validateEmail, validatePassword } = require('../utils/Validation')
 
 class UserController {
-    async registration(req, res, next) {
+    
+    validateAuthInput = (username, password, next) => {
+        if (!validateEmail(username)) {
+            return next(ApiError.badRequest("Invalid email format!"));
+        }
+
+        if (!validatePassword(password)) {
+            return next(ApiError.badRequest("Password must be at least 10 characters long, contain at least 2 uppercase letters, 1 special character, 2 digits, and 3 lowercase letters!"));
+        }
+    };
+
+    registration = async (req, res, next) => {
         try {
             const {username, password} = req.body
 
-            if (!validateEmail()) {
-                return next(ApiError.badRequest("Invalid email format!"));
-            }
-
-            if (!validateUsername()) {
-                return next(ApiError.badRequest("Password must be at least 10 characters long, contain at least 2 uppercase letters, 1 special character, 2 digits, and 3 lowercase letters!"));
-            }
+            this.validateAuthInput(username, password, next)
 
             const user = await User.findOne({where: {username}})
             if (user) {
@@ -35,20 +40,28 @@ class UserController {
         }
     }
 
-    async login(req, res, next) {
-        passport.authenticate('local', function (err, user, info) {
-            if (err) {
-                console.log(err);
-                return next(err);
-            }
+    login = async (req, res, next) => {
+        try {
+            const { username, password } = req.body;
+
+            this.validateAuthInput(username, password, next)
             
+            const user = await User.findOne({ where: { username } });
             if (!user) {
-                return res.status(401).json({message: info.message})
+                return next(ApiError.badRequest('No user with such email!'));
+            }
+
+            const isPasswordValid = await bcrypt.compare(password, user.password);
+            if (!isPasswordValid) {
+                return next(ApiError.badRequest('Incorrect password!'));
             }
 
             const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
             return res.json({ message: 'Login successful', token });
-        })(req, res, next);
+        } catch(e) {
+            console.log(err);
+            return next(ApiError.internal("An error occurred during login"));
+        }
     }
 
     async googleAuth(req, res, next) {
