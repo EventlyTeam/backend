@@ -5,17 +5,26 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/user')
 const ApiError = require('../error/ApiError')
 
+const { validateEmail, validateUsername } = require('../utils/Validation')
+
 class UserController {
     async registration(req, res, next) {
         try {
             const {username, password} = req.body
-            if (!username || !password) {
-                return next(ApiError.badRequest("Email and password are required!"))
+
+            if (!validateEmail()) {
+                return next(ApiError.badRequest("Invalid email format!"));
             }
+
+            if (!validateUsername()) {
+                return next(ApiError.badRequest("Password must be at least 10 characters long, contain at least 2 uppercase letters, 1 special character, 2 digits, and 3 lowercase letters!"));
+            }
+
             const user = await User.findOne({where: {username}})
             if (user) {
                 return next(ApiError.badRequest('User with such data exists!'))
             }
+            
             const hashedPassword = await bcrypt.hash(password, 5)
             const newUser = await User.create({ username, password: hashedPassword });
 
@@ -53,6 +62,7 @@ class UserController {
             if (err) {
                 return next(err);
             }
+
             if (!user) {
                 return res.redirect('/');
             }

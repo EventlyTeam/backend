@@ -16,7 +16,6 @@ passport.use(
             try {
                 const user = await User.findOne({ where: { username } });
                 if (!user) {
-                
                     return done(null, false, { message: 'No user with such email!' });
                 }
 
