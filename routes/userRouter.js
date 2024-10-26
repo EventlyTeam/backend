@@ -11,5 +11,7 @@ router.post('/logout', userController.logout)
 router.get('/google', userController.googleAuth)
 router.get('/google/callback', userController.googleAuthCallback)
 router.get('/auth', authMiddleware, userController.check)
+router.post('/send-verification-email', authMiddleware, userController.sendVerificationEmail);
+router.get('/verify-email', userController.verifyEmail);
 
 module.exports = router

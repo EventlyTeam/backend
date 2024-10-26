@@ -1,6 +1,7 @@
 const passport = require('passport')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken');
+const nodemailer = require('nodemailer')
 
 const User = require('../models/user')
 const ApiError = require('../error/ApiError')
@@ -98,6 +99,84 @@ class UserController {
     async check(req, res, next) {
         return res.json({message: "Ok"})
     }
+
+    async sendVerificationEmail(req, res, next) {
+        try {
+            const {username} = req.body;
+            if (!username) {
+                return ApiError.forbidden('User email must be passed');
+            }
+
+            const user = await User.findOne({ where: { username } });
+            if (!user) {
+                return next(ApiError.badRequest('User not found'));
+            }
+            
+            if (user.emailVerified) {
+                return next(ApiError.forbidden('Email already verified'));
+            }
+    
+            const verificationToken = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    
+            const verificationUrl = `${req.protocol}://${req.get('host')}/api/user/verify-email?email=${username}&token=${verificationToken}`;
+            const htmlMessage = `<p>Hello! Verify your email by clicking on the following link</p>
+                <a href=${verificationUrl}>Verify email</a>
+            `;
+    
+            const transporter = nodemailer.createTransport({
+                service: 'gmail',
+                host: 'smtp.gmail.com',
+                port: 465,
+                secure: true,
+                auth: {
+                    user: process.env.EMAIL_USERNAME,
+                    pass: process.env.EMAIL_PASSWORD,
+                },
+            });
+
+            let mailOptions = {
+                from: process.env.EMAIL_USERNAME,
+                to: username,
+                subject: 'Email Verification',
+                html: htmlMessage
+            }
+
+            await transporter.sendMail(mailOptions);
+
+            res.status(200).json({ message: 'Verification email was sent' });
+        } catch (error) {
+            return next(ApiError.internal('Error sending verification email'));
+        }
+    }
+
+    async verifyEmail(req, res, next) {
+        try {
+            const { token, email } = req.query;
+    
+            jwt.verify(token, process.env.JWT_SECRET, (err) => {
+                if (err) {
+                    return ApiError.non_authorized('Failed to authenticate token');
+                }
+            });
+            
+            const user = await User.findOne({ where: { username: email } });
+            if (!user) {
+                return next(ApiError.badRequest('User not found'));
+            }
+            
+            if (user.emailVerified) {
+                return next(ApiError.forbidden('Email already verified'));
+            }
+
+            user.emailVerified = true;
+            await user.save();
+    
+            res.status(200).json({ message: 'Email verified successfully' });
+        } catch (error) {
+            return next(ApiError.internal('Error verifying email'));
+        }
+    }
+    
 }
 
 module.exports = new UserController()
