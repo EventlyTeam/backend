@@ -5,11 +5,13 @@ const path = require('path');
 const cors = require('cors')
 const express = require('express')
 const session = require('express-session')
+const swaggerUi = require('swagger-ui-express');
 
 const errorHandler = require('./middleware/errorHandlingMiddleware')
 const sequelize = require('./config/sequelize');
 const router = require('./routes/index')
 const passport = require('./config/passport');
+const swaggerDocument = require('./config/swagger/config');
 
 const app = express()
 
@@ -36,6 +38,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 app.use('/api', router)
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.use(errorHandler)
 
 sequelize.authenticate()
@@ -49,4 +52,5 @@ sequelize.authenticate()
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}`)
+  console.log(`Swagger docs available at http://localhost:${PORT}/api-docs`);
 })
