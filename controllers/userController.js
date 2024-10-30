@@ -2,7 +2,9 @@ const passport = require('passport')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer')
+const {OAuth2Client} = require('google-auth-library');
 
+const client = new OAuth2Client();
 const User = require('../models/user')
 const ApiError = require('../error/ApiError')
 
@@ -176,7 +178,44 @@ class UserController {
             return next(ApiError.internal('Error verifying email'));
         }
     }
-    
+
+    async verifyGoogleToken(req, res, next) {
+
+        const {token} = req.body;
+
+        try {
+            const ticket = await client.verifyIdToken({
+                idToken: token,
+                requiredAudience: process.env.ANDROID_CLIENT_ID
+            });
+            
+            const payload = ticket.getPayload();
+            
+            let userId = payload['email'];
+
+            if(!userId) {
+                userId = payload['sub'];
+            }
+
+            let user = await User.findOne(
+                { where: { username: userId } }
+            );
+
+            if (!user) {
+                user = await User.create({
+                    username: userId,
+                    password: null
+                });
+            }
+            
+            const jwtToken = jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: '1h' });
+            
+            res.status(200).json({ token: jwtToken });
+        }
+        catch(e) {
+            return next(ApiError.internal('Cannot verify token'))
+        }
+    }
 }
 
 module.exports = new UserController()

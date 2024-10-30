@@ -13,5 +13,6 @@ router.get('/google/callback', userController.googleAuthCallback)
 router.get('/auth', authMiddleware, userController.check)
 router.post('/send-verification-email', authMiddleware, userController.sendVerificationEmail);
 router.get('/verify-email', userController.verifyEmail);
+router.post('/google/mobile', userController.verifyGoogleToken)
 
 module.exports = router
