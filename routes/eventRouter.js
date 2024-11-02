@@ -2,6 +2,7 @@ const express = require('express')
 
 const router = express.Router()
 
+const authMiddleware = require('../middleware/authMiddleware')
 const eventController = require('../controllers/eventController')
 const upload = require('../middleware/multerMiddleware');
 

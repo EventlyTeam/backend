@@ -38,7 +38,7 @@ class EventController {
                 searchCriteria.category = { [Op.eq]: category };
             }
             if (start) {
-                searchCriteria.start = { [Op.gte]: new Date(start) };
+                searchCriteria.startDate = { [Op.gte]: new Date(start) };
             }
             if (end) {
                 searchCriteria.endDate = { [Op.lte]: new Date(end) };

@@ -1,4 +1,4 @@
 const YAML = require('yamljs');
-const swaggerDocument = YAML.load('./config/swagger/swagger.yaml');
+const swaggerDocument = YAML.load('./config/swagger/openapi.yaml');
 
 module.exports = swaggerDocument;
