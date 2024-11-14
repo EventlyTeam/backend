@@ -16,7 +16,6 @@ class CategoryController {
             const category = await Category.create({ title, description });
             return res.status(201).json(category);
         } catch (error) {
-            console.log(error);
             return next(ApiError.internal('Error creating Category'));
         }
     }
@@ -26,7 +25,6 @@ class CategoryController {
             const categories = await Category.findAll();
             return res.status(200).json(categories);
         } catch (error) {
-            console.log(error);
             return next(ApiError.internal('Error fetching categories'));
         }
     }
@@ -42,7 +40,6 @@ class CategoryController {
 
             return res.status(200).json(category);
         } catch (error) {
-            console.log(error);
             return next(ApiError.internal('Error fetching category'));
         }
     }
@@ -69,7 +66,6 @@ class CategoryController {
 
             return res.status(200).json(category);
         } catch (error) {
-            console.log(error);
             return next(ApiError.internal('Error updating category'));
         }
     }
@@ -86,9 +82,9 @@ class CategoryController {
             }
 
             await category.destroy();
+            
             return res.status(200).json({ message: 'Category deleted successfully' });
         } catch (error) {
-            console.log(error);
             return next(ApiError.internal('Error deleting category'));
         }
     }

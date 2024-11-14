@@ -15,7 +15,6 @@ class CountryController {
             const country = await Country.create({ name });
             return res.status(201).json(country);
         } catch (error) {
-            console.log(error);
             return next(ApiError.internal(error));
         }
     }
@@ -40,7 +39,7 @@ class CountryController {
 
             return res.status(200).json(country);
         } catch (error) {
-            next(ApiError.internal(error));
+            return next(ApiError.internal(error));
         }
     }
 

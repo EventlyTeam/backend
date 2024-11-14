@@ -61,7 +61,6 @@ class UserController {
             const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
             return res.json({ message: 'Login successful', token });
         } catch(e) {
-            console.log(err);
             return next(ApiError.internal("An error occurred during login"));
         }
     }

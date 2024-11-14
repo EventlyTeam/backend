@@ -27,7 +27,7 @@ class EventController {
             } = req.body;
 
             if (!title || !startDate || !endDate || !locationId || !categoryId || !formatId) {
-                next(ApiError.badRequest(
+                return next(ApiError.badRequest(
                     'Missing required fields: title, startDate, endDate, locationId, categoryId, and formatId are required.'
                 ));
             }
@@ -63,14 +63,14 @@ class EventController {
                 
                 await Photo.bulkCreate(photos, { transaction });
             }
+
             await transaction.commit();
 
             const eventWithPhotos = await Event.findByPk(event.id, {include: {model: Photo, as: 'photos'}})
             res.status(201).json(eventWithPhotos);
         } catch (error) {
-            console.log(error)
             await transaction.rollback();
-            next(ApiError.badRequest(error.message));
+            return next(ApiError.badRequest(error.message));
         }
     }
     
@@ -130,7 +130,7 @@ class EventController {
                 events: eventsWithBase64Images
             });
         } catch (error) {
-            next(ApiError.internal(error.message));
+            return next(ApiError.internal(error.message));
         }
     }    
     
@@ -158,7 +158,7 @@ class EventController {
     
             res.status(200).json(event);
         } catch (error) {
-            next(ApiError.internal(error.message));
+            return next(ApiError.internal(error.message));
         }
     }
     
@@ -211,8 +211,6 @@ class EventController {
 
             if (req.files && req.files.length > 0) {
                 const photos = req.files.map(file => {
-                    console.log(`Uploaded file: originalname = ${file.originalname}`); // Log original name for testing
-                    console.log(`Uploaded file: path = ${file.path}`);
                     return {
                         uri: file.path,
                         description: photoDescriptions[file.originalname] || null,
@@ -234,7 +232,7 @@ class EventController {
             res.status(200).json('Event was updated successfully');
         } catch (error) {
             await transaction.rollback();
-            next(ApiError.badRequest(error.message));
+            return next(ApiError.badRequest(error.message));
         }
     }
     
@@ -260,7 +258,7 @@ class EventController {
                 message: 'Event was deleted successfully!'
             });
         } catch (error) {
-            next(ApiError.internal(error.message));
+            return next(ApiError.internal(error.message));
         }
     }    
 }

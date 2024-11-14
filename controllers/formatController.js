@@ -16,7 +16,6 @@ class FormatController {
             const format = await Format.create({ title, description });
             return res.status(201).json(format);
         } catch (error) {
-            console.log(error);
             return next(ApiError.internal('Error creating format'));
         }
     }
@@ -26,7 +25,6 @@ class FormatController {
             const formats = await Format.findAll();
             return res.status(200).json(formats);
         } catch (error) {
-            console.log(error);
             return next(ApiError.internal('Error fetching formats'));
         }
     }
@@ -42,7 +40,6 @@ class FormatController {
 
             return res.status(200).json(format);
         } catch (error) {
-            console.log(error);
             return next(ApiError.internal('Error fetching format'));
         }
     }
@@ -65,11 +62,11 @@ class FormatController {
 
             if (title) format.title = title;
             if (description) format.description = description;
+            
             await format.save();
 
             return res.status(200).json(format);
         } catch (error) {
-            console.log(error);
             return next(ApiError.internal('Error updating format'));
         }
     }
@@ -88,7 +85,6 @@ class FormatController {
             await format.destroy();
             return res.status(200).json({ message: 'Format deleted successfully' });
         } catch (error) {
-            console.log(error);
             return next(ApiError.internal('Error deleting format'));
         }
     }

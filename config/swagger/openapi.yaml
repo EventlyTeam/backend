@@ -1,14 +1,8 @@
 openapi: 3.1.0
 
 info:
-  title: Your API Title
+  title: Evently API
   version: 1.0.0
-
-tags:
-  - name: Events
-    description: Operations related to events
-  - name: Authentication
-    description: Operations related to user authentication
 
 paths:
   /user/registration:
@@ -26,6 +20,9 @@ paths:
                 username:
                   type: string
                   description: User's email as username.
+                birthday:
+                  type: date
+                  description: User's birthday.
                 password:
                   type: string
                   description: User's password meeting specific validation requirements.
@@ -163,13 +160,14 @@ paths:
         '500':
           description: Internal error during token verification.
 
-  /events:
+  /event:
     post:
       summary: Create a new event
+      description: Creates a new event with the provided details. Photos can also be uploaded.
       tags:
-        - Events
+        - Event
       security:
-        - bearerAuth: []
+        - BearerAuth: []
       requestBody:
         required: true
         content:
@@ -177,89 +175,195 @@ paths:
             schema:
               type: object
               properties:
-                name:
+                title:
                   type: string
+                  description: Title of the event.
                 description:
                   type: string
-                location:
-                  type: string
+                  description: Description of the event (optional).
                 startDate:
                   type: string
-                  format: date
+                  format: date-time
+                  description: Start date and time of the event.
                 endDate:
                   type: string
-                  format: date
+                  format: date-time
+                  description: End date and time of the event.
                 capacity:
                   type: integer
-                category:
-                  type: string
-                price:
-                  type: number
-                  format: float
-                status:
-                  type: string
-                  enum: [scheduled, ongoing, completed, cancelled]
-                images:
+                  description: Maximum number of participants (optional).
+                ageLimit:
+                  type: integer
+                  description: Age limit for participants (optional).
+                isPublic:
+                  type: boolean
+                  required: false
+                  description: Whether the event is public.
+                locationId:
+                  type: integer
+                  description: ID of the event's location.
+                categoryId:
+                  type: integer
+                  description: ID of the event's category.
+                formatId:
+                  type: integer
+                  description: ID of the event's format.
+                photoDescriptions:
+                  type: object
+                  additionalProperties:
+                    type: string
+                  description: Descriptions for uploaded photos (optional).
+                photos:
                   type: array
                   items:
                     type: string
                     format: binary
+                  description: Photos to be uploaded for the event (optional).
       responses:
-        "201":
-          description: Event created successfully
+        201:
+          description: Event created successfully with photos (if provided).
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Event'
-        "400":
-          description: Bad request
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    description: ID of the newly created event.
+                  title:
+                    type: string
+                    description: Title of the event.
+                  description:
+                    type: string
+                    description: Description of the event.
+                  startDate:
+                    type: string
+                    format: date-time
+                    description: Start date and time of the event.
+                  endDate:
+                    type: string
+                    format: date-time
+                    description: End date and time of the event.
+                  capacity:
+                    type: integer
+                    description: Maximum number of participants.
+                  ageLimit:
+                    type: integer
+                    description: Age limit for participants.
+                  isPublic:
+                    type: boolean
+                    description: Whether the event is public.
+                  locationId:
+                    type: integer
+                    description: ID of the event's location.
+                  categoryId:
+                    type: integer
+                    description: ID of the event's category.
+                  formatId:
+                    type: integer
+                    description: ID of the event's format.
+                  secretCode:
+                    type: string
+                    description: Secret code for the event.
+                  organizerId:
+                    type: integer
+                    description: ID of the event's organizer.
+                  photos:
+                    type: array
+                    items:
+                      type: string
+                      description: URI of the uploaded photos.
+        400:
+          description: Missing required fields or invalid input.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Error message.
+        401:
+          description: Unauthorized, user must be authenticated.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Error message.
+        500:
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Error message.
 
     get:
-      summary: Get a list of events
+      summary: Get all events
+      description: Retrieve a list of events with optional filters.
       tags:
-        - Events
+        - Event
       parameters:
         - in: query
-          name: name
+          name: title
+          description: Search events by title
+          required: false
           schema:
             type: string
-          description: Name of the event
         - in: query
-          name: location
+          name: locationId
+          description: Filter events by location ID
+          required: false
           schema:
-            type: string
-          description: Location of the event
+            type: integer
         - in: query
-          name: category
+          name: categoryId
+          description: Filter events by category ID
+          required: false
           schema:
-            type: string
-          description: Category of the event
+            type: integer
+        - in: query
+          name: formatId
+          description: Filter events by format ID
+          required: false
+          schema:
+            type: integer
         - in: query
           name: start
+          description: Filter events starting after a specific date
+          required: false
           schema:
             type: string
-            format: date
-            description: Start date filter
+            format: date-time
         - in: query
           name: end
+          description: Filter events ending before a specific date
+          required: false
           schema:
             type: string
-            format: date
-            description: End date filter
+            format: date-time
         - in: query
           name: limit
+          description: Number of events to return per page
+          required: false
           schema:
             type: integer
             default: 10
-          description: Limit number of events
         - in: query
           name: offset
+          description: The page offset
+          required: false
           schema:
             type: integer
             default: 0
-          description: Offset for pagination
       responses:
-        "200":
+        200:
           description: List of events
           content:
             application/json:
@@ -276,104 +380,244 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/Event'
-        "500":
+        500:
           description: Internal server error
 
-  /events/{id}:
+  /event/{id}:
     get:
-      summary: Get an event by ID
+      summary: Get event by ID
+      description: Retrieve details of a specific event by its ID.
       tags:
-        - Events
+        - Event
       parameters:
         - in: path
           name: id
           required: true
           schema:
-            type: string
-          description: ID of the event to retrieve
+            type: integer
+          description: Event ID
       responses:
-        "200":
-          description: Event details
+        200:
+          description: Event found successfully
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Event'
-        "400":
-          description: Bad request
-        "404":
+        400:
           description: Event not found
+        500:
+          description: Internal server error
 
     put:
-        summary: Update an event
-        tags:
-          - Events
-        security:
-          - bearerAuth: []
-        parameters:
-          - name: id
-            in: path
-            required: true
-            description: ID of the event
-            schema:
-              type: integer
-        requestBody:
+      summary: Update an existing event
+      description: Update the details of an existing event, including photos.
+      tags:
+        - Event
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
           required: true
-          content:
-            application/json:
-              schema:
+          schema:
+            type: integer
+          description: Event ID
+        - in: body
+          name: event
+          description: Updated event details
+          required: true
+          schema:
+            type: object
+            properties:
+              title:
+                type: string
+              description:
+                type: string
+              startDate:
+                type: string
+                format: date-time
+              endDate:
+                type: string
+                format: date-time
+              capacity:
+                type: integer
+              ageLimit:
+                type: integer
+              isPublic:
+                type: boolean
+              locationId:
+                type: integer
+              categoryId:
+                type: integer
+              formatId:
+                type: integer
+              photoDescriptions:
                 type: object
-                properties:
-                  name:
-                    type: string
-                  description:
-                    type: string
-                  location:
-                    type: string
-                  startDate:
-                    type: string
-                    format: date-time
-                  endDate:
-                    type: string
-                    format: date-time
-                  capacity:
-                    type: integer
-                  category:
-                    type: string
-                  price:
-                    type: number
-                    format: float
-                  status:
-                    type: string
-                    enum:
-                      - scheduled
-                      - ongoing
-                      - completed
-                      - cancelled
-        responses:
-          "200":
-            description: Event updated successfully
-            content:
-              application/json:
-                schema:
+                additionalProperties:
                   type: string
-                  example: 'Event was updated successfully'
+      responses:
+        200:
+          description: Event updated successfully
+        400:
+          description: Event not found or missing required fields
+        403:
+          description: Forbidden (not authorized to update event)
+        500:
+          description: Internal server error
 
     delete:
       summary: Delete an event
+      description: Delete a specific event by its ID.
       tags:
-        - Events
+        - Event
       security:
-        - bearerAuth: []
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Event ID
+      responses:
+        200:
+          description: Event deleted successfully
+        400:
+          description: Event not found
+        403:
+          description: Forbidden (not authorized to delete event)
+        500:
+          description: Internal server error
+
+  /city:
+    post:
+      summary: Create a new city
+      tags:
+        - City
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: 'New York'
+                countryId:
+                  type: integer
+                  example: 1
+              required:
+                - name
+                - countryId
+      responses:
+        '201':
+          description: City created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/City'
+        '400':
+          description: Bad Request
+        '500':
+          description: Internal Server Error
+
+    get:
+      summary: Get all cities
+      tags:
+        - City
+      responses:
+        '200':
+          description: List of cities retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/City'
+        '500':
+          description: Internal Server Error
+
+  /city/{id}:
+    get:
+      summary: Get a city by ID
+      tags:
+        - City
       parameters:
         - name: id
           in: path
           required: true
-          description: ID of the event
           schema:
             type: integer
+          example: 1
       responses:
-        "200":
-          description: Event deleted successfully
+        '200':
+          description: City retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/City'
+        '400':
+          description: Bad Request - City not found
+        '500':
+          description: Internal Server Error
+
+    put:
+      summary: Update a city
+      tags:
+        - City
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: 'Los Angeles'
+                countryId:
+                  type: integer
+                  example: 2
+      responses:
+        '200':
+          description: City updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/City'
+        '400':
+          description: Bad Request - City or Country not found
+        '500':
+          description: Internal Server Error
+
+    delete:
+      summary: Delete a city
+      tags:
+        - City
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 1
+      responses:
+        '200':
+          description: City deleted successfully
           content:
             application/json:
               schema:
@@ -381,15 +625,442 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: 'Event was deleted successfully!'
-        "404":
-          description: Event not found
+                    example: 'City deleted successfully'
+        '400':
+          description: Bad Request - City not found
+        '500':
+          description: Internal Server Error
+
+  /locations:
+    post:
+      summary: Create a new location
+      tags:
+        - Location
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                details:
+                  type: string
+                  description: Details about the location
+                cityId:
+                  type: integer
+                  description: ID of the city the location belongs to
+              required:
+                - cityId
+      responses:
+        201:
+          description: Location created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Location'
+        400:
+          description: Bad request, possibly due to missing required fields
+        500:
+          description: Internal server error
+    get:
+      summary: Retrieve all locations
+      tags:
+        - Location
+      responses:
+        200:
+          description: A list of locations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Location'
+        500:
+          description: Internal server error
+
+  /locations/{id}:
+    get:
+      summary: Retrieve a location by ID
+      tags:
+        - Location
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID of the location to retrieve
+      responses:
+        200:
+          description: Location retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Location'
+        400:
+          description: Location not found
+        500:
+          description: Internal server error
+    put:
+      summary: Update a location by ID
+      tags:
+        - Location
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID of the location to update
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                details:
+                  type: string
+                  description: Details about the location
+                cityId:
+                  type: integer
+                  description: ID of the city the location belongs to
+      responses:
+        200:
+          description: Location updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Location'
+        400:
+          description: Location not found
+        500:
+          description: Internal server error
+    delete:
+      summary: Delete a location by ID
+      tags:
+        - Location
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID of the location to delete
+      responses:
+        200:
+          description: Location deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Location deleted successfully"
+        400:
+          description: Location not found
+        500:
+          description: Internal server error
+    
+  /format:
+    post:
+      summary: Create a new format
+      tags:
+        - Format
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  description: Title of the format
+                description:
+                  type: string
+                  description: Description of the format
+              required:
+                - title
+                - description
+      responses:
+        201:
+          description: Format created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Format'
+        400:
+          description: Bad request, possibly due to missing required fields
+        500:
+          description: Internal server error
+    get:
+      summary: Retrieve all formats
+      tags:
+        - Format
+      responses:
+        200:
+          description: A list of formats
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Format'
+        500:
+          description: Internal server error
+
+  /format/{id}:
+    get:
+      summary: Retrieve a format by ID
+      tags:
+        - Format
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID of the format to retrieve
+      responses:
+        200:
+          description: Format retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Format'
+        400:
+          description: Format not found
+        500:
+          description: Internal server error
+    put:
+      summary: Update a format by ID
+      tags:
+        - Format
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID of the format to update
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  description: Updated title of the format
+                description:
+                  type: string
+                  description: Updated description of the format
+      responses:
+        200:
+          description: Format updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Format'
+        400:
+          description: Format not found
+        500:
+          description: Internal server error
+    delete:
+      summary: Delete a format by ID
+      tags:
+        - Format
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID of the format to delete
+      responses:
+        200:
+          description: Format deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Format deleted successfully"
+        400:
+          description: Format not found
+        500:
+          description: Internal server error
+
+  /category:
+    post:
+      summary: Create a new category
+      tags:
+        - Category
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  description: Title of the category
+                description:
+                  type: string
+                  description: Description of the category
+              required:
+                - title
+                - description
+      responses:
+        201:
+          description: Category created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+        400:
+          description: Bad request, possibly due to missing required fields
+        500:
+          description: Internal server error
+    get:
+      summary: Retrieve all categories
+      tags:
+        - Category
+      responses:
+        200:
+          description: A list of categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Category'
+        500:
+          description: Internal server error
+
+  /category/{id}:
+    get:
+      summary: Retrieve a category by ID
+      tags:
+        - Category
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID of the category to retrieve
+      responses:
+        200:
+          description: Category retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+        400:
+          description: Category not found
+        500:
+          description: Internal server error
+    put:
+      summary: Update a category by ID
+      tags:
+        - Category
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID of the category to update
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  description: Updated title of the category
+                description:
+                  type: string
+                  description: Updated description of the category
+      responses:
+        200:
+          description: Category updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+        400:
+          description: Category not found
+        500:
+          description: Internal server error
+    delete:
+      summary: Delete a category by ID
+      tags:
+        - Category
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID of the category to delete
+      responses:
+        200:
+          description: Category deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Category deleted successfully"
+        400:
+          description: Category not found
+        500:
+          description: Internal server error
+
 
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
   schemas:
     User:
       type: object
       properties:
+        id:
+          type: integer
+          example: 101
         username:
           type: string
           example: 'johndoe@example.com'
@@ -399,35 +1070,144 @@ components:
         emailVerified:
           type: boolean
           example: false
+          default: false
+        birthday:
+          type: string
+          format: date
+          example: '1990-01-01'
+        roleId:
+          type: integer
+          example: 1
 
     Event:
       type: object
       properties:
         id:
           type: integer
-        name:
+          example: 101
+        title:
           type: string
+          example: 'Tech Conference 2024'
         description:
           type: string
-        location:
-          type: string
+          example: 'A conference about the latest in tech.'
         startDate:
           type: string
           format: date-time
+          example: '2024-07-20T09:00:00Z'
         endDate:
           type: string
           format: date-time
+          example: '2024-07-20T17:00:00Z'
         capacity:
           type: integer
-        category:
+          example: 200
+        ageLimit:
+          type: integer
+          example: 18
+        isPublic:
+          type: boolean
+          example: true
+        secretCode:
           type: string
-        price:
-          type: number
-          format: float
-        status:
+          example: 'CONF2024'
+        organizerId:
+          type: integer
+          example: 1
+        locationId:
+          type: integer
+          example: 2
+        categoryId:
+          type: integer
+          example: 3
+        formatId:
+          type: integer
+          example: 4
+
+    Category:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        title:
           type: string
-          enum: [scheduled, ongoing, completed, cancelled]
-        imageUrls:
-          type: array
-          items:
-            type: string
+          example: 'Music'
+        description:
+          type: string
+          example: 'Events related to music and concerts.'
+
+    City:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: 'New York'
+        countryId:
+          type: integer
+          example: 1
+
+    Country:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: 'United States'
+
+    Format:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        title:
+          type: string
+          example: 'Workshop'
+        description:
+          type: string
+          example: 'Hands-on training sessions.'
+
+    Location:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        details:
+          type: string
+          example: 'Central Park, near the lake'
+        cityId:
+          type: integer
+          example: 1
+
+    Photo:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        uri:
+          type: string
+          example: '../path/photo.jpg'
+        description:
+          type: string
+          example: 'Event banner image'
+        eventId:
+          type: integer
+          example: 101
+
+    Role:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: 'admin'

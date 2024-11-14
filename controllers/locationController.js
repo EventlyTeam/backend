@@ -19,9 +19,9 @@ class LocationController {
             }
 
             const location = await Location.create({ details, cityId });
+            
             return res.status(201).json(location);
         } catch (error) {
-            console.error(error);
             return next(ApiError.internal('Error creating location'));
         }
     }
@@ -31,7 +31,6 @@ class LocationController {
             const locations = await Location.findAll({ include: City });
             return res.status(200).json(locations);
         } catch (error) {
-            console.error(error);
             return next(ApiError.internal('Error retrieving locations'));
         }
     }
@@ -47,7 +46,6 @@ class LocationController {
 
             return res.status(200).json(location);
         } catch (error) {
-            console.error(error);
             return next(ApiError.internal('Error retrieving location'));
         }
     }
@@ -77,7 +75,6 @@ class LocationController {
 
             return res.status(200).json(location);
         } catch (error) {
-            console.error(error);
             return next(ApiError.internal('Error updating location'));
         }
     }
@@ -94,9 +91,9 @@ class LocationController {
             }
 
             await location.destroy();
+            
             return res.status(200).json({ message: 'Location deleted successfully' });
         } catch (error) {
-            console.error(error);
             return next(ApiError.internal('Error deleting location'));
         }
     }

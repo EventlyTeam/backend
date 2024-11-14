@@ -21,7 +21,6 @@ class CityController {
             const city = await City.create({ name, countryId });
             return res.status(201).json(city);
         } catch (error) {
-            console.error(error);
             return next(ApiError.internal('Error creating city'));
         }
     }
@@ -31,7 +30,6 @@ class CityController {
             const cities = await City.findAll({ include: Country });
             return res.status(200).json(cities);
         } catch (error) {
-            console.error(error);
             return next(ApiError.internal('Error retrieving cities'));
         }
     }
@@ -47,7 +45,6 @@ class CityController {
 
             return res.status(200).json(city);
         } catch (error) {
-            console.error(error);
             return next(ApiError.internal('Error retrieving city'));
         }
     }
@@ -73,11 +70,11 @@ class CityController {
 
             city.name = name || city.name;
             city.countryId = countryId || city.countryId;
+            
             await city.save();
 
             return res.status(200).json(city);
         } catch (error) {
-            console.error(error);
             return next(ApiError.internal('Error updating city'));
         }
     }
@@ -94,9 +91,9 @@ class CityController {
             }
 
             await city.destroy();
+            
             return res.status(200).json({ message: 'City deleted successfully' });
         } catch (error) {
-            console.error(error);
             return next(ApiError.internal('Error deleting city'));
         }
     }
