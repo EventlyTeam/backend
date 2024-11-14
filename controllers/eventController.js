@@ -1,41 +1,95 @@
 const Event = require('../models/event');
+const Photo = require('../models/photo');
 const ApiError = require('../error/ApiError');
 const ImageConverter = require('../utils/ImageConverter');
 
-const { Op } = require('sequelize')
+const { v4: uuidv4 } = require('uuid');
+const { Op } = require('sequelize');
+const sequelize = require('../config/sequelize');
 
 class EventController {
     
     async createEvent(req, res, next) {
+        const transaction = await sequelize.transaction();
         try {
-            const { name, description, location, startDate, endDate, capacity, category, price, status } = req.body;
-            const imageUrls = req.files ? req.files.map(file => file.path) : [];
+            const {
+                title,
+                description,
+                startDate,
+                endDate,
+                capacity,
+                ageLimit,
+                isPublic,
+                locationId,
+                categoryId,
+                formatId,
+                photoDescriptions
+            } = req.body;
+
+            if (!title || !startDate || !endDate || !locationId || !categoryId || !formatId) {
+                next(ApiError.badRequest(
+                    'Missing required fields: title, startDate, endDate, locationId, categoryId, and formatId are required.'
+                ));
+            }
+
+            const secretCode = uuidv4();
             const organizerId = req.userId;
     
             const event = await Event.create({
-                name, description, location, startDate, endDate, capacity, organizerId, category, price, status, imageUrls
+                title, 
+                description, 
+                startDate, 
+                endDate, 
+                capacity, 
+                ageLimit, 
+                isPublic,
+                secretCode,
+                organizerId, 
+                locationId, 
+                categoryId, 
+                formatId
+            }, {
+                transaction
             });
-    
-            res.status(201).json(event);
+
+            if (req.files && req.files.length > 0) {
+                let photos = req.files.map(file => {
+                    return {
+                        uri: file.path,
+                        description: photoDescriptions && photoDescriptions[file.originalname] || null,
+                        eventId: event.id
+                    }
+                });
+                
+                await Photo.bulkCreate(photos, { transaction });
+            }
+            await transaction.commit();
+
+            const eventWithPhotos = await Event.findByPk(event.id, {include: {model: Photo, as: 'photos'}})
+            res.status(201).json(eventWithPhotos);
         } catch (error) {
+            console.log(error)
+            await transaction.rollback();
             next(ApiError.badRequest(error.message));
         }
     }
     
     async getEvents(req, res, next) {
         try {
-            const { name, location, category, start, end, limit = 10, offset = 0 } = req.query;
-            
+            const { title, locationId, categoryId, formatId, start, end, limit = 10, offset = 0 } = req.query;
             const searchCriteria = {};
             
-            if (name) {
-                searchCriteria.name = { [Op.iLike]: `%${name}%` };
+            if (title) {
+                searchCriteria.title = { [Op.iLike]: `%${title}%` };
             }
-            if (location) {
-                searchCriteria.location = { [Op.eq]: location };
+            if (locationId) {
+                searchCriteria.locationId = { [Op.eq]: locationId };
             }
-            if (category) {
-                searchCriteria.category = { [Op.eq]: category };
+            if (categoryId) {
+                searchCriteria.categoryId = { [Op.eq]: categoryId };
+            }
+            if (formatId) {
+                searchCriteria.formatId = { [Op.eq]: formatId };
             }
             if (start) {
                 searchCriteria.startDate = { [Op.gte]: new Date(start) };
@@ -50,16 +104,22 @@ class EventController {
                 offset: parseInt(offset),
             });
 
+            const eventIds = events.rows.map(event => event.id);
+            const photos = await Photo.findAll({
+                where: { eventId: eventIds }
+            });
+
             const eventsWithBase64Images = await Promise.all(events.rows.map(async event => {
-                const base64Images = event.imageUrls ? await Promise.all(
-                    event.imageUrls.map(async url => {
-                        return await ImageConverter.getBase64(url);
+                const eventPhotos = photos.filter(photo => photo.eventId === event.id);
+                const base64Images = await Promise.all(
+                    eventPhotos.map(async photo => {
+                        return await ImageConverter.getBase64(photo.uri);
                     })
-                ) : [];
+                );
     
                 return {
                     ...event.dataValues,
-                    imageUrls: base64Images
+                    photos: base64Images
                 };
             }));
             
@@ -83,24 +143,43 @@ class EventController {
                 return next(ApiError.badRequest('Event not found'));
             }
             
-            if (event.imageUrl) {
-                event.imageUrls = await Promise.all(
-                    event.imageUrls.map(async url => await ImageConverter.getBase64(url))
+            let photos = await Photo.findAll({
+                where: {
+                    eventId: event.id
+                }
+            })
+            if (photos.length > 0) {
+                event.photos = await Promise.all(
+                    photos.map(async photo => await ImageConverter.getBase64(photo.uri))
                 );
+            } else {
+                event.photos = [];
             }
     
             res.status(200).json(event);
         } catch (error) {
-            console.log(error)
             next(ApiError.internal(error.message));
         }
     }
     
     async updateEvent(req, res, next) {
+        const transaction = await sequelize.transaction();
         try {
-            const { name, description, location, startDate, endDate, capacity, category, price, status } = req.body;
+            const {
+                title,
+                description,
+                startDate,
+                endDate,
+                capacity,
+                ageLimit,
+                isPublic,
+                locationId,
+                categoryId,
+                formatId,
+                photoDescriptions
+            } = req.body;
+
             const eventId = req.params.id;
-            const imageUrls = req.files ? req.files.map(file => file.path) : [];
             const organizerId = req.userId;
     
             const event = await Event.findByPk(eventId);
@@ -113,19 +192,48 @@ class EventController {
             }
 
             const updatedFields = {
-                name, description, location, startDate, endDate, capacity, category, price, status
+                title,
+                description,
+                startDate,
+                endDate,
+                capacity,
+                ageLimit,
+                isPublic,
+                locationId,
+                categoryId,
+                formatId
             };
-            
-            if (imageUrls) {
-                updatedFields.imageUrls = imageUrls;
-            }
 
             await Event.update(updatedFields, {
-                where: { id: eventId }
+                where: { id: eventId },
+                transaction
             });
 
+            if (req.files && req.files.length > 0) {
+                const photos = req.files.map(file => {
+                    console.log(`Uploaded file: originalname = ${file.originalname}`); // Log original name for testing
+                    console.log(`Uploaded file: path = ${file.path}`);
+                    return {
+                        uri: file.path,
+                        description: photoDescriptions[file.originalname] || null,
+                        eventId: event.id
+                    }
+                });
+                
+                await Photo.destroy({
+                    where: {
+                        eventId: event.id
+                    },
+                    transaction
+                });
+
+                await Photo.bulkCreate(photos, { transaction });
+            }
+
+            await transaction.commit();
             res.status(200).json('Event was updated successfully');
         } catch (error) {
+            await transaction.rollback();
             next(ApiError.badRequest(error.message));
         }
     }

@@ -24,21 +24,20 @@ class UserController {
 
     registration = async (req, res, next) => {
         try {
-            const {username, password} = req.body
+            const {username, password, birthday} = req.body
 
             this.validateAuthInput(username, password, next)
 
             const user = await User.findOne({where: {username}})
             if (user) {
-                return next(ApiError.badRequest('User with such data exists!'))
+                return next(ApiError.badRequest('User with such username exists!'))
             }
             
             const hashedPassword = await bcrypt.hash(password, 5)
-            const newUser = await User.create({ username, password: hashedPassword });
+            const newUser = await User.create({ username, password: hashedPassword, birthday: birthday });
 
             return res.status(201).json({ message: 'User registered successfully.', user: newUser });
         } catch (e) {
-            console.log(e)
             return next(ApiError.badRequest(e.message))
         }
     }
@@ -89,13 +88,19 @@ class UserController {
     }
 
     async logout(req, res, next) {
-        req.logout(function (err) {
-            if (err) {
-                return next(err);
-            }
-        });
-        res.clearCookie('connect.sid');
-        return res.json({message: 'Logout successful', isAuth: req.isAuthenticated()});
+        try {
+            req.logout((err) => {
+                if (err) {
+                    return next(err);
+                }
+
+                res.clearCookie('connect.sid');
+
+                return res.json({ message: 'Logout successful', isAuth: req.isAuthenticated() });
+            });
+        } catch (error) {
+            next(ApiError.internal(error));
+        }
     }
 
     async check(req, res, next) {
@@ -120,7 +125,7 @@ class UserController {
     
             const verificationToken = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
     
-            const verificationUrl = `${req.protocol}://${req.get('host')}/api/user/verify-email?email=${username}&token=${verificationToken}`;
+            const verificationUrl = `${req.protocol}://${req.get('host')}/verify-email?email=${username}&token=${verificationToken}`;
             const htmlMessage = `<p>Hello! Verify your email by clicking on the following link</p>
                 <a href=${verificationUrl}>Verify email</a>
             `;
@@ -204,7 +209,8 @@ class UserController {
             if (!user) {
                 user = await User.create({
                     username: userId,
-                    password: null
+                    password: null,
+                    birthday: null
                 });
             }
             
