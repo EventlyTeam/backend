@@ -1,18 +1,19 @@
 const express = require('express')
+const passport = require('passport')
 
-const router = express.Router()
+const router = express.Router();
 
-const userController = require('../controllers/userController')
-const authMiddleware = require('../middleware/authMiddleware')
+const userController = require('../controllers/userController');
+const authMiddleware = require('../middleware/authMiddleware');
+const {emailValidator, passwordValidator} = require('../utils/Validation')
 
-router.post('/registration', userController.registration)
-router.post('/login', userController.login)
+router.post('/registration', emailValidator, passwordValidator, userController.registration)
+router.post('/login', emailValidator, passwordValidator, userController.login)
 router.post('/logout', userController.logout)
-router.get('/google', userController.googleAuth)
-router.get('/google/callback', userController.googleAuthCallback)
-router.get('/auth', authMiddleware, userController.check)
+router.get('/google',  passport.authenticate('google', { scope: ['email', 'profile'] }))
+router.get('/google/callback', passport.authenticate('google', { session: false }), userController.googleAuthCallback)
 router.post('/send-verification-email', authMiddleware, userController.sendVerificationEmail);
 router.get('/verify-email', userController.verifyEmail);
-router.post('/google/mobile', userController.verifyGoogleToken)
+router.get('/refresh', userController.refresh);
 
 module.exports = router

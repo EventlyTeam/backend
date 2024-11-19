@@ -1,7 +1,4 @@
-function validateEmail(email) {
-    const emailRegex = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
-    return emailRegex.test(email)
-}
+const {body} = require('express-validator');
 
 /*
     Password rules (at least):
@@ -12,12 +9,15 @@ function validateEmail(email) {
     - 3 letters in lowercase
 */
 
-function validatePassword(password) {
-    const passwordRegex = /^(?=(.*[a-z]){3})(?=(.*[A-Z]){2})(?=(.*\d){2})(?=.*[\W_]).{10,}$/;
-    return passwordRegex.test(password)
-}
+const emailValidator = body('username').isEmail().withMessage('Email has wrong format');
+const passwordValidator = body('password')
+    .isLength({ min: 10 }).withMessage('Password must be at least 10 characters long')
+    .matches(/[A-Z].*[A-Z]/).withMessage('Password must contain at least 2 uppercase letters')
+    .matches(/[a-z].*[a-z].*[a-z]/).withMessage('Password must contain at least 3 lowercase letters')
+    .matches(/[^A-Za-z0-9]/).withMessage('Password must contain at least 1 special character')
+    .matches(/\d.*\d/).withMessage('Password must contain at least 2 numbers');
 
 module.exports =  {
-    validateEmail,
-    validatePassword,
+    emailValidator,
+    passwordValidator,
 };

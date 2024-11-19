@@ -26,7 +26,7 @@ passport.use(
                 if (data.birthdays && data.birthdays[0] && data.birthdays[0].date) {
                     const date = data.birthdays[0].date;
                     if (date.day && date.month && date.year) {   
-                        birthday = `${birthday.day}.${birthday.month}.${birthday.year}`;
+                        birthday = `${date.day}.${date.month}.${date.year}`;
                     }
                 }
 
