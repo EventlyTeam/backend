@@ -2,15 +2,12 @@ const passport = require('passport')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer')
-const {OAuth2Client} = require('google-auth-library');
 const {validationResult} = require('express-validator');
 const tokenService = require('../service/TokenService')
 
 const User = require('../models/user')
 const ApiError = require('../error/ApiError');
 const UserDto = require('../dtos/UserDto');
-
-const client = new OAuth2Client();
 
 class UserController {
     async registration(req, res, next) {
@@ -20,15 +17,18 @@ class UserController {
                 return next(ApiError.badRequest(errors.array()))
             }
 
-            const {username, password, birthday} = req.body;
+            const {username, password, email, birthday} = req.body;
 
-            const user = await User.findOne({where: {username}})
+            const user = await User.findOne({
+                where: { username, email }
+            })
+
             if (user) {
-                return next(ApiError.badRequest('User with such username exists!'))
+                return next(ApiError.badRequest('User with such email or username exists!'))
             }
             
             const hashedPassword = await bcrypt.hash(password, 5)
-            const newUser = await User.create({ username, password: hashedPassword, birthday: birthday });
+            const newUser = await User.create({ username, password: hashedPassword, email: email, birthday: birthday });
             
             const userDto = new UserDto(newUser.dataValues);
             const tokens = tokenService.generateTokens({...userDto});
@@ -53,7 +53,7 @@ class UserController {
             
             const user = await User.findOne({ where: { username } });
             if (!user) {
-                return next(ApiError.notFound('No user with such email!'));
+                return next(ApiError.notFound('No user with such username!'));
             }
 
             const isPasswordValid = await bcrypt.compare(password, user.password);
@@ -182,7 +182,7 @@ class UserController {
                 }
             });
             
-            const user = await User.findOne({ where: { username: email } });
+            const user = await User.findOne({ where: email });
             if (!user) {
                 return next(ApiError.badRequest('User not found'));
             }

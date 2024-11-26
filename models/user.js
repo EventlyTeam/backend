@@ -11,12 +11,17 @@ const User = sequelize.define('User', {
   password: {
     type: DataTypes.STRING
   },
+  email: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    unique: true
+  },
   emailVerified: {
     type: DataTypes.BOOLEAN,
     defaultValue: false
   },
   birthday: {
-    type: DataTypes.DATE,
+    type: DataTypes.DATEONLY,
     allowNull: true
   },
   roleId: {

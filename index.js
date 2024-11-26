@@ -43,15 +43,6 @@ app.use('/api', router)
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.use(errorHandler)
 
-sequelize.authenticate()
-  .then(() => {
-    console.log('Connection has been established successfully.');
-    return sequelize.sync({ alter: true });
-  })
-  .catch((error) => {
-    console.error('Unable to connect to the database:', error);
-  });
-
 const initializeApp = async () => {
   try {
     await sequelize.authenticate();
@@ -69,9 +60,10 @@ const initializeApp = async () => {
     if (adminRole) {
       let password = await bcrypt.hash('admin_123AS$', 5)
       await User.findOrCreate({
-        where: { username: 'admin@y.a' },
+        where: { username: 'admin' },
         defaults: {
-          username: 'admin@y.a',
+          email: "admin@mail.y",
+          username: 'admin',
           password: password,
           roleId: adminRole.id
         }

@@ -1,5 +1,4 @@
 const passport = require('passport');
-const bcrypt = require('bcrypt');
 
 const GoogleStrategy = require('passport-google-oauth2').Strategy;
 
@@ -31,19 +30,19 @@ passport.use(
                 }
 
                 let user = await User.findOne({
-                    where: { username: profile.email }
+                    where: { email: profile.email }
                 });
 
                 if (!user) {
                     user = await User.create({
-                        username: profile.email,
+                        username: profile.displayName,
+                        email: profile.email,
                         birthday: birthday
                     });
                 }
                 
                 return done(null, user)
             } catch(err) {
-                console.log(err.message);
                 return done(err);
             }
         }

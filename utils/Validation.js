@@ -9,7 +9,7 @@ const {body} = require('express-validator');
     - 3 letters in lowercase
 */
 
-const emailValidator = body('username').isEmail().withMessage('Email has wrong format');
+const emailValidator = body('email').isEmail().withMessage('Email has wrong format');
 const passwordValidator = body('password')
     .isLength({ min: 10 }).withMessage('Password must be at least 10 characters long')
     .matches(/[A-Z].*[A-Z]/).withMessage('Password must contain at least 2 uppercase letters')

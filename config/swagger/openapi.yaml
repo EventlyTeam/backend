@@ -19,7 +19,10 @@ paths:
               properties:
                 username:
                   type: string
-                  description: User's email as username.
+                  description: User's username.
+                email:
+                  type: string
+                  description: User's email.
                 birthday:
                   type: date
                   description: User's birthday.
@@ -415,6 +418,39 @@ paths:
         - Event
       security:
         - BearerAuth: []
+      requestBody:
+        required: true
+        name: event
+        description: Updated event details
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                startDate:
+                  type: string
+                  format: date-time
+                endDate:
+                  type: string
+                  format: date-time
+                capacity:
+                  type: integer
+                ageLimit:
+                  type: integer
+                isPublic:
+                  type: boolean
+                locationId:
+                  type: integer
+                categoryId:
+                  type: integer
+                formatId:
+                  type: integer
+                photoDescriptions:
+                  type: object
       parameters:
         - in: path
           name: id
@@ -422,39 +458,7 @@ paths:
           schema:
             type: integer
           description: Event ID
-        - in: body
-          name: event
-          description: Updated event details
-          required: true
-          schema:
-            type: object
-            properties:
-              title:
-                type: string
-              description:
-                type: string
-              startDate:
-                type: string
-                format: date-time
-              endDate:
-                type: string
-                format: date-time
-              capacity:
-                type: integer
-              ageLimit:
-                type: integer
-              isPublic:
-                type: boolean
-              locationId:
-                type: integer
-              categoryId:
-                type: integer
-              formatId:
-                type: integer
-              photoDescriptions:
-                type: object
-                additionalProperties:
-                  type: string
+              
       responses:
         200:
           description: Event updated successfully
@@ -1062,6 +1066,9 @@ components:
           type: integer
           example: 101
         username:
+          type: string
+          example: 'johndoe'
+        email:
           type: string
           example: 'johndoe@example.com'
         password:
