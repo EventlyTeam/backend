@@ -382,7 +382,7 @@ paths:
                   events:
                     type: array
                     items:
-                      $ref: '#/components/schemas/Event'
+                      $ref: '#/components/schemas/EventWithPhotos'
         500:
           description: Internal server error
 
@@ -405,7 +405,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Event'
+                $ref: '#/components/schemas/EventWithPhotos'
         400:
           description: Event not found
         500:
@@ -492,6 +492,127 @@ paths:
           description: Forbidden (not authorized to delete event)
         500:
           description: Internal server error
+
+  /country:
+    get:
+      summary: Get all countries
+      description: Retrieve a list of all countries.
+      tags:
+        - Country
+      responses:
+        200:
+          description: List of countries retrieved successfully.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CountryWithCities'
+        500:
+          description: Internal server error.
+    post:
+      summary: Create a new country
+      description: Create a new country. Only admins are allowed.
+      tags:
+        - Country
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "United States"
+      responses:
+        201:
+          description: Country created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Country'
+        400:
+          description: Bad request (e.g., missing required fields).
+        500:
+          description: Internal server error.
+
+  /country/{id}:
+    get:
+      summary: Get a country by ID
+      description: Retrieve a country by its ID, including associated cities.
+      tags:
+        - Country
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID of the country.
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Country retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CountryWithCities'
+        400:
+          description: Country not found.
+        500:
+          description: Internal server error.
+    put:
+      summary: Update a country
+      description: Update the name of an existing country. Only admins are allowed.
+      tags:
+        - Country
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID of the country.
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "Canada"
+      responses:
+        200:
+          description: Country updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Country'
+        400:
+          description: Country not found or bad request.
+        500:
+          description: Internal server error.
+    delete:
+      summary: Delete a country
+      description: Delete a country by its ID. Only admins are allowed.
+      tags:
+        - Country
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID of the country.
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Country deleted successfully.
+        400:
+          description: Country not found.
+        500:
+          description: Internal server error.
 
   /city:
     post:
@@ -635,7 +756,7 @@ paths:
         '500':
           description: Internal Server Error
 
-  /locations:
+  /location:
     post:
       summary: Create a new location
       tags:
@@ -684,7 +805,7 @@ paths:
         500:
           description: Internal server error
 
-  /locations/{id}:
+  /location/{id}:
     get:
       summary: Retrieve a location by ID
       tags:
@@ -1131,6 +1252,17 @@ components:
           type: integer
           example: 4
 
+    EventWithPhotos:
+      
+      allOf:
+        - $ref: '#/components/schemas/Event'
+        - type: object
+          properties:
+            photos:
+              type: array
+              items:
+                $ref: '#/components/schemas/Photo'
+
     Category:
       type: object
       properties:
@@ -1166,6 +1298,16 @@ components:
         name:
           type: string
           example: 'United States'
+
+    CountryWithCities:
+      allOf:
+        - $ref: '#/components/schemas/Country'
+        - type: object
+          properties:
+            cities:
+              type: array
+              items:
+                $ref: '#/components/schemas/City'
 
     Format:
       type: object

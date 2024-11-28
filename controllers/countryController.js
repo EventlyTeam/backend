@@ -1,4 +1,5 @@
 const ApiError = require('../error/ApiError');
+const City = require('../models/city');
 const Country = require('../models/country');
 const verifyAdminRole = require('../utils/VerifyAdminRole')
 
@@ -21,7 +22,12 @@ class CountryController {
 
     async getAllCountries(req, res, next) {
         try {
-            const countries = await Country.findAll();
+            const countries = await Country.findAll({
+                include: {
+                    model: City,
+                    as: 'cities'
+                }
+            });
             return res.status(200).json(countries);
         } catch (error) {
             return next(ApiError.internal(error));
@@ -31,7 +37,12 @@ class CountryController {
     async getCountryById(req, res, next) {
         try {
             const { id } = req.params;
-            const country = await Country.findByPk(id);
+            const country = await Country.findByPk(id, {
+                include: {
+                    model: City,
+                    as: 'cities'
+                }
+            });
 
             if (!country) {
                 return next(ApiError.badRequest('Country not found'));
