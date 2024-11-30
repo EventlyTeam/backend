@@ -1,3 +1,4 @@
+const ApiError = require("../error/ApiError");
 const Role = require("../models/role");
 const User = require("../models/user");
 

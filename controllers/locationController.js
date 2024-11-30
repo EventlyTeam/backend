@@ -6,7 +6,7 @@ const verifyAdminRole = require('../utils/VerifyAdminRole')
 class LocationController {
     async createLocation(req, res, next) {
         try {
-            await verifyAdminRole(req.userId, next);
+            await verifyAdminRole(req.user.id, next);
 
             const { details, cityId } = req.body;
             if (!cityId) {
@@ -52,7 +52,7 @@ class LocationController {
 
     async updateLocation(req, res, next) {
         try {
-            await verifyAdminRole(req.userId, next);
+            await verifyAdminRole(req.user.id, next);
 
             const { id } = req.params;
             const { details, cityId } = req.body;
@@ -81,7 +81,7 @@ class LocationController {
 
     async deleteLocation(req, res, next) {
         try {
-            await verifyAdminRole(req.userId, next);
+            await verifyAdminRole(req.user.id, next);
 
             const { id } = req.params;
             const location = await Location.findByPk(id);

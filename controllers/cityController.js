@@ -6,7 +6,7 @@ const verifyAdminRole = require('../utils/VerifyAdminRole')
 class CityController {
     async createCity(req, res, next) {
         try {
-            await verifyAdminRole(req.userId, next);
+            await verifyAdminRole(req.user.id, next);
 
             const { name, countryId } = req.body;
             if (!name || !countryId) {
@@ -51,7 +51,7 @@ class CityController {
 
     async updateCity(req, res, next) {
         try {
-            await verifyAdminRole(req.userId, next);
+            await verifyAdminRole(req.user.id, next);
 
             const { id } = req.params;
             const { name, countryId } = req.body;
@@ -81,7 +81,7 @@ class CityController {
 
     async deleteCity(req, res, next) {
         try {
-            await verifyAdminRole(req.userId, next);
+            await verifyAdminRole(req.user.id, next);
 
             const { id } = req.params;
             const city = await City.findByPk(id);

@@ -33,7 +33,7 @@ class EventController {
             }
 
             const secretCode = uuidv4();
-            const organizerId = req.userId;
+            const organizerId = req.user.id;
     
             const event = await Event.create({
                 title, 
@@ -180,7 +180,7 @@ class EventController {
             } = req.body;
 
             const eventId = req.params.id;
-            const organizerId = req.userId;
+            const organizerId = req.user.id;
     
             const event = await Event.findByPk(eventId);
             if (!event) {
@@ -242,7 +242,7 @@ class EventController {
             const event = await Event.findByPk(eventId);
             const eventOrganizerId = event.organizerId;
 
-            if (eventOrganizerId !== req.userId) {
+            if (eventOrganizerId !== req.user.id) {
                 return next(ApiError.forbidden('Only organizer can delete event!'));
             }
 

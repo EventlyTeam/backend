@@ -6,7 +6,7 @@ class CategoryController {
 
     async createCategory(req, res, next) {
         try {
-            await verifyAdminRole(req.userId, next);
+            await verifyAdminRole(req.user.id, next);
 
             const { title, description } = req.body;
             if (!title || !description) {
@@ -46,7 +46,7 @@ class CategoryController {
 
     async updateCategory(req, res, next) {
         try {
-            await verifyAdminRole(req.userId, next);
+            await verifyAdminRole(req.user.id, next);
 
             const { id } = req.params;
             const { title, description } = req.body;
@@ -72,7 +72,7 @@ class CategoryController {
 
     async deleteCategory(req, res, next) {
         try {
-            await verifyAdminRole(req.userId, next);
+            await verifyAdminRole(req.user.id, next);
 
             const { id } = req.params;
             const category = await Category.findByPk(id);
