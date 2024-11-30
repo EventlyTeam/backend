@@ -8,7 +8,7 @@ const authMiddleware = require('../middleware/authMiddleware');
 const {emailValidator, passwordValidator} = require('../utils/Validation')
 
 router.post('/registration', emailValidator, passwordValidator, userController.registration)
-router.post('/login', emailValidator, passwordValidator, userController.login)
+router.post('/login', passwordValidator, userController.login)
 router.post('/logout', userController.logout)
 router.get('/google',  passport.authenticate('google', { scope: ['email', 'profile'] }))
 router.get('/google/callback', passport.authenticate('google', { session: false }), userController.googleAuthCallback)
