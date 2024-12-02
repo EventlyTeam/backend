@@ -9,6 +9,7 @@ const cityRouter = require('./cityRouter')
 const locationRouter = require('./locationRouter')
 const formatRouter = require('./formatRouter')
 const categoryRouter = require('./categoryRouter')
+const chatRouter = require('./chatRouter')
 
 router.use('/user', userRouter)
 router.use('/event', eventRouter)
@@ -17,5 +18,6 @@ router.use('/city', cityRouter)
 router.use('/location', locationRouter)
 router.use('/format', formatRouter)
 router.use('/category', categoryRouter)
+router.use('/chat', chatRouter)
 
 module.exports = router
