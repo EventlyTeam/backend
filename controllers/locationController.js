@@ -15,23 +15,23 @@ class LocationController {
 
             const city = await City.findByPk(cityId);
             if (!city) {
-                return next(ApiError.badRequest('City not found'));
+                return next(ApiError.notFound('City not found'));
             }
 
             const location = await Location.create({ details, cityId });
             
-            return res.status(201).json(location);
+            res.status(201).json(location);
         } catch (error) {
-            return next(ApiError.internal('Error creating location'));
+            next(ApiError.internal('Error creating location'));
         }
     }
 
     async getAllLocations(req, res, next) {
         try {
             const locations = await Location.findAll({ include: City });
-            return res.status(200).json(locations);
+            res.status(200).json(locations);
         } catch (error) {
-            return next(ApiError.internal('Error retrieving locations'));
+            next(ApiError.internal('Error retrieving locations'));
         }
     }
 
@@ -41,12 +41,12 @@ class LocationController {
             const location = await Location.findByPk(id, { include: City });
 
             if (!location) {
-                return next(ApiError.badRequest('Location not found'));
+                return next(ApiError.notFound('Location not found'));
             }
 
-            return res.status(200).json(location);
+            res.status(200).json(location);
         } catch (error) {
-            return next(ApiError.internal('Error retrieving location'));
+            next(ApiError.internal('Error retrieving location'));
         }
     }
 
@@ -59,23 +59,24 @@ class LocationController {
 
             const location = await Location.findByPk(id);
             if (!location) {
-                return next(ApiError.badRequest('Location not found'));
+                return next(ApiError.notFound('Location not found'));
             }
 
             if (cityId) {
                 const city = await City.findByPk(cityId);
                 if (!city) {
-                    return next(ApiError.badRequest('City not found'));
+                    return next(ApiError.notFound('City not found'));
                 }
             }
 
             location.details = details || location.details;
             location.cityId = cityId || location.cityId;
+
             await location.save();
 
-            return res.status(200).json(location);
+            res.status(200).json(location);
         } catch (error) {
-            return next(ApiError.internal('Error updating location'));
+            next(ApiError.internal('Error updating location'));
         }
     }
 
@@ -87,14 +88,14 @@ class LocationController {
             const location = await Location.findByPk(id);
 
             if (!location) {
-                return next(ApiError.badRequest('Location not found'));
+                return next(ApiError.notFound('Location not found'));
             }
 
             await location.destroy();
             
-            return res.status(200).json({ message: 'Location deleted successfully' });
+            res.status(200).json({ message: 'Location deleted successfully' });
         } catch (error) {
-            return next(ApiError.internal('Error deleting location'));
+            next(ApiError.internal('Error deleting location'));
         }
     }
 }

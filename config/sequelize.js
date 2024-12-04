@@ -16,4 +16,13 @@ const sequelize = DATABASE_URL ? new Sequelize(DATABASE_URL, {
   dialect: 'postgres'
 });;
 
+sequelize.authenticate()
+  .then(() => {
+    console.log('Connection has been established successfully.');
+    return sequelize.sync({ alter: true });
+  })
+  .catch((error) => {
+    console.error('Unable to connect to the database: ', error);
+  });
+
 module.exports = sequelize;

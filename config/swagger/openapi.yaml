@@ -496,6 +496,79 @@ paths:
         500:
           description: Internal server error
 
+  /event/{id}/register:
+    post:
+      summary: Register for an event
+      description: Allows a user to register for an event if it has not reached its capacity.
+      tags:
+        - Event
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          description: ID of the event to register for
+          schema:
+            type: string
+      responses:
+        200:
+          description: Successfully registered for the event
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  registration:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      userId:
+                        type: string
+                      eventId:
+                        type: string
+        '400':
+          description: User already registered or event is at full capacity
+        '404':
+          description: Event not found
+        '500':
+          description: Internal server error
+
+  /event/{id}/unregister:
+    delete:
+      summary: Unregister from an event
+      description: Allows a user to unregister from an event if they are already registered.
+      tags:
+        - Event
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          description: ID of the event to unregister from
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully unregistered from the event
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '400':
+          description: User not registered for the event
+        '404':
+          description: Event not found
+        '500':
+          description: Internal server error
+
   /country:
     get:
       summary: Get all countries
@@ -1175,6 +1248,104 @@ paths:
         500:
           description: Internal server error
 
+  /chat:
+    post:
+      summary: Create a chat room for an event
+      description: Creates a chat room for a specified event, but only if the user is the organizer of the event.
+      tags:
+        - ChatRoom
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                eventId:
+                  type: integer
+                  example: 42
+      responses:
+        201:
+          description: Chat room created successfully
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "Chat was created successfully!"
+        400:
+          description: Bad Request
+        403:
+          description: Forbidden
+        404:
+          description: Event not found
+        500:
+          description: Internal server error
+
+  /chat/{id}:
+    delete:
+      summary: Delete the chat room
+      description: Deletes a chat room for a specified event, but only if the user is the organizer of the event.
+      tags:
+        - ChatRoom
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: ID of the chat room
+      responses:
+        200:
+          description: Chat room deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Chat room deleted successfully!"
+        403:
+          description: Forbidden request
+        404:
+          description: Chat room or event not found
+        500:
+          description: Internal server error
+
+  /chat/id:
+    get:
+      summary: Get chat room ID for an event
+      description: Returns the ID of the chat room associated with a specified event.
+      tags:
+        - ChatRoom
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: eventId
+          schema:
+            type: integer
+          required: true
+          description: ID of the event
+      responses:
+        200:
+          description: Chat room found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    $ref: '#/components/schemas/ChatRoom'
+        404:
+          description: Chat room not found for the event
+
+        500:
+          description: Internal server error
 
 components:
   securitySchemes:
@@ -1233,6 +1404,9 @@ components:
         capacity:
           type: integer
           example: 200
+        participantAmount:
+          type: integer
+          example: 20
         ageLimit:
           type: integer
           example: 18
@@ -1256,7 +1430,6 @@ components:
           example: 4
 
     EventWithPhotos:
-      
       allOf:
         - $ref: '#/components/schemas/Event'
         - type: object
@@ -1363,3 +1536,46 @@ components:
         name:
           type: string
           example: 'admin'
+
+    EventRegistration:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        userId:
+          type: integer
+          example: 2
+        eventId:
+          type: integer
+          example: 3
+    
+    ChatRoom:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        eventId:
+          type: integer
+          example: 42
+
+    ChatMessage:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 101
+        userId:
+          type: integer
+          example: 5
+        chatRoomId:
+          type: integer
+          example: 1
+        message:
+          type: string
+          example: "This is a chat message"
+        createdAt:
+          type: string
+          format: date-time
+          example: "2024-12-04T10:00:00Z"

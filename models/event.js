@@ -26,6 +26,11 @@ const Event = sequelize.define('Event', {
     type: DataTypes.INTEGER,
     allowNull: true,
   },
+  participantAmount: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    defaultValue: 0
+  },
   ageLimit: {
     type: DataTypes.INTEGER,
     allowNull: true,

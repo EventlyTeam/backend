@@ -14,18 +14,18 @@ class FormatController {
             }
 
             const format = await Format.create({ title, description });
-            return res.status(201).json(format);
+            res.status(201).json(format);
         } catch (error) {
-            return next(ApiError.internal('Error creating format'));
+            next(ApiError.internal('Error creating format'));
         }
     }
 
     async getAllFormats(req, res, next) {
         try {
             const formats = await Format.findAll();
-            return res.status(200).json(formats);
+            res.status(200).json(formats);
         } catch (error) {
-            return next(ApiError.internal('Error fetching formats'));
+            next(ApiError.internal('Error fetching formats'));
         }
     }
 
@@ -35,12 +35,12 @@ class FormatController {
             const format = await Format.findByPk(id);
 
             if (!format) {
-                return next(ApiError.badRequest('Format not found'));
+                return next(ApiError.notFound('Format not found'));
             }
 
-            return res.status(200).json(format);
+            res.status(200).json(format);
         } catch (error) {
-            return next(ApiError.internal('Error fetching format'));
+            next(ApiError.internal('Error fetching format'));
         }
     }
 
@@ -57,7 +57,7 @@ class FormatController {
 
             const format = await Format.findByPk(id);
             if (!format) {
-                return next(ApiError.badRequest('Format not found'));
+                return next(ApiError.notFound('Format not found'));
             }
 
             if (title) format.title = title;
@@ -65,9 +65,9 @@ class FormatController {
             
             await format.save();
 
-            return res.status(200).json(format);
+            res.status(200).json(format);
         } catch (error) {
-            return next(ApiError.internal('Error updating format'));
+            next(ApiError.internal('Error updating format'));
         }
     }
 
@@ -79,13 +79,13 @@ class FormatController {
             const format = await Format.findByPk(id);
 
             if (!format) {
-                return next(ApiError.badRequest('Format not found'));
+                return next(ApiError.notFound('Format not found'));
             }
 
             await format.destroy();
-            return res.status(200).json({ message: 'Format deleted successfully' });
+            res.status(200).json({ message: 'Format deleted successfully' });
         } catch (error) {
-            return next(ApiError.internal('Error deleting format'));
+            next(ApiError.internal('Error deleting format'));
         }
     }
 }

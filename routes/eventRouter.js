@@ -11,5 +11,7 @@ router.get('/', eventController.getEvents);
 router.get('/:id', eventController.getEventById);
 router.put('/:id', authMiddleware, upload.array('photos'), eventController.updateEvent);
 router.delete('/:id', authMiddleware, eventController.deleteEvent);
+router.post('/:id/register', authMiddleware, eventController.registerForEvent);
+router.delete('/:id/unregister', authMiddleware, eventController.unregisterFromEvent);
 
 module.exports = router
