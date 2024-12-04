@@ -21,7 +21,7 @@ const Photo = sequelize.define('Photo', {
     }
 });
 
-Event.hasMany(Photo, { foreignKey: 'eventId' });
+Event.hasMany(Photo, { foreignKey: 'eventId', as: 'photos' });
 Photo.belongsTo(Event, { foreignKey: 'eventId' });
 
 module.exports = Photo;

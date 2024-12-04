@@ -6,6 +6,7 @@ const ImageConverter = require('../utils/ImageConverter');
 const { v4: uuidv4 } = require('uuid');
 const { Op } = require('sequelize');
 const sequelize = require('../config/sequelize');
+const EventRegistration = require('../models/eventRegistration');
 
 class EventController {
     
@@ -66,11 +67,14 @@ class EventController {
 
             await transaction.commit();
 
-            const eventWithPhotos = await Event.findByPk(event.id, {include: {model: Photo, as: 'photos'}})
+            const eventWithPhotos = await Event.findByPk(event.id, {
+                include: { model: Photo, as: 'photos'}
+            });
+            
             res.status(201).json(eventWithPhotos);
         } catch (error) {
             await transaction.rollback();
-            return next(ApiError.badRequest(error.message));
+            next(ApiError.badRequest(error.message));
         }
     }
     
@@ -130,17 +134,17 @@ class EventController {
                 events: eventsWithBase64Images
             });
         } catch (error) {
-            return next(ApiError.internal(error.message));
+            next(ApiError.internal(error.message));
         }
     }    
     
     async getEventById(req, res, next) {
         try {
-            const eventId = req.params.id;
-            const event = await Event.findByPk(eventId);
+            const { id } = req.params.id;
+            const event = await Event.findByPk(id);
         
             if (!event) {
-                return next(ApiError.badRequest('Event not found'));
+                return next(ApiError.notFound('Event not found'));
             }
             
             let photos = await Photo.findAll({
@@ -158,7 +162,7 @@ class EventController {
     
             res.status(200).json(event);
         } catch (error) {
-            return next(ApiError.internal(error.message));
+            next(ApiError.internal(error.message));
         }
     }
     
@@ -179,12 +183,12 @@ class EventController {
                 photoDescriptions
             } = req.body;
 
-            const eventId = req.params.id;
+            const { id } = req.params.id;
             const organizerId = req.user.id;
     
-            const event = await Event.findByPk(eventId);
+            const event = await Event.findByPk(id);
             if (!event) {
-                return next(ApiError.badRequest('Event not found'));
+                return next(ApiError.notFound('Event not found'));
             }
 
             if (event.organizerId !== organizerId) {
@@ -205,7 +209,7 @@ class EventController {
             };
 
             await Event.update(updatedFields, {
-                where: { id: eventId },
+                where: { id: id },
                 transaction
             });
 
@@ -232,14 +236,15 @@ class EventController {
             res.status(200).json('Event was updated successfully');
         } catch (error) {
             await transaction.rollback();
-            return next(ApiError.badRequest(error.message));
+            next(ApiError.badRequest(error.message));
         }
     }
     
     async deleteEvent(req, res, next) {
         try {
-            const eventId = req.params.id;
-            const event = await Event.findByPk(eventId);
+            const { id } = req.params.id;
+    
+            const event = await Event.findByPk(id);
             const eventOrganizerId = event.organizerId;
 
             if (eventOrganizerId !== req.user.id) {
@@ -247,20 +252,85 @@ class EventController {
             }
 
             const deleted = await Event.destroy({
-                where: { id: eventId }
+                where: { id: id }
             });
 
             if (!deleted) {
-                return next(ApiError.badRequest('Event not found'));
+                return next(ApiError.notFound('Event not found'));
             }
 
             res.status(200).json({
                 message: 'Event was deleted successfully!'
             });
         } catch (error) {
-            return next(ApiError.internal(error.message));
+            next(ApiError.internal(error.message));
         }
-    }    
+    }
+
+    async registerForEvent(req, res, next) {
+        try {
+            const { id } = req.params;
+            const userId = req.user.id;
+    
+            const event = await Event.findByPk(id);
+            if (!event) {
+                return next(ApiError.notFound('Event not found'));
+            }
+    
+            if (event.capacity) {
+                const totalRegistered = event.participantAmount;
+    
+                if (totalRegistered === event.capacity) {
+                    return next(ApiError.badRequest('Event is at full capacity'));
+                }
+            }
+    
+            const existingRegistration = await EventRegistration.findOne({
+                where: { userId, id }
+            });
+    
+            if (existingRegistration) {
+                return next(ApiError.badRequest('You are already registered for this event'));
+            }
+    
+            const registration = await EventRegistration.create({ userId, id });
+    
+            res.status(201).json({
+                message: 'You have successfully registered for the event!',
+                registration
+            });
+        } catch (error) {
+            next(ApiError.internal("Error while registering for event"));
+        }
+    }
+
+    async unregisterFromEvent(req, res, next) {
+        try {
+            const { id } = req.params;
+            const userId = req.user.id;
+    
+            const event = await Event.findByPk(id);
+            if (!event) {
+                return next(ApiError.notFound('Event not found'));
+            }
+    
+            const existingRegistration = await EventRegistration.findOne({
+                where: { userId, id }
+            });
+    
+            if (!existingRegistration) {
+                return next(ApiError.badRequest('You are not registered for this event'));
+            }
+    
+            await existingRegistration.destroy();
+    
+            res.status(200).json({
+                message: 'You have successfully unregistered from the event!',
+            });
+        } catch (error) {
+            next(ApiError.internal("Error while unregistering from event"));
+        }
+    }
 }
 
 module.exports = new EventController();
