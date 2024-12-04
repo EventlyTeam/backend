@@ -14,18 +14,18 @@ class CategoryController {
             }
 
             const category = await Category.create({ title, description });
-            return res.status(201).json(category);
+            res.status(201).json(category);
         } catch (error) {
-            return next(ApiError.internal('Error creating Category'));
+            next(ApiError.internal('Error creating Category'));
         }
     }
 
     async getAllCategories(req, res, next) {
         try {
             const categories = await Category.findAll();
-            return res.status(200).json(categories);
+            res.status(200).json(categories);
         } catch (error) {
-            return next(ApiError.internal('Error fetching categories'));
+            next(ApiError.internal('Error fetching categories'));
         }
     }
 
@@ -35,12 +35,12 @@ class CategoryController {
             const category = await Category.findByPk(id);
 
             if (!category) {
-                return next(ApiError.badRequest('Category not found'));
+                return next(ApiError.notFound('Category not found'));
             }
 
-            return res.status(200).json(category);
+            res.status(200).json(category);
         } catch (error) {
-            return next(ApiError.internal('Error fetching category'));
+            next(ApiError.internal('Error fetching category'));
         }
     }
 
@@ -57,16 +57,16 @@ class CategoryController {
 
             const category = await Category.findByPk(id);
             if (!category) {
-                return next(ApiError.badRequest('Category not found'));
+                return next(ApiError.notFound('Category not found'));
             }
 
             if (title) category.title = title;
             if (description) category.description = description;
             await category.save();
 
-            return res.status(200).json(category);
+            res.status(200).json(category);
         } catch (error) {
-            return next(ApiError.internal('Error updating category'));
+            next(ApiError.internal('Error updating category'));
         }
     }
 
@@ -78,14 +78,14 @@ class CategoryController {
             const category = await Category.findByPk(id);
 
             if (!category) {
-                return next(ApiError.badRequest('Category not found'));
+                return next(ApiError.notFound('Category not found'));
             }
 
             await category.destroy();
             
-            return res.status(200).json({ message: 'Category deleted successfully' });
+            res.status(200).json({ message: 'Category deleted successfully' });
         } catch (error) {
-            return next(ApiError.internal('Error deleting category'));
+            next(ApiError.internal('Error deleting category'));
         }
     }
 }

@@ -14,9 +14,10 @@ class CountryController {
             }
             
             const country = await Country.create({ name });
-            return res.status(201).json(country);
+            
+            res.status(201).json(country);
         } catch (error) {
-            return next(ApiError.internal(error));
+            next(ApiError.internal(error));
         }
     }
 
@@ -28,9 +29,10 @@ class CountryController {
                     as: 'cities'
                 }
             });
-            return res.status(200).json(countries);
+
+            res.status(200).json(countries);
         } catch (error) {
-            return next(ApiError.internal(error));
+            next(ApiError.internal(error));
         }
     }
 
@@ -45,12 +47,12 @@ class CountryController {
             });
 
             if (!country) {
-                return next(ApiError.badRequest('Country not found'));
+                return next(ApiError.notFound('Country not found'));
             }
 
-            return res.status(200).json(country);
+            res.status(200).json(country);
         } catch (error) {
-            return next(ApiError.internal(error));
+            next(ApiError.internal(error));
         }
     }
 
@@ -67,15 +69,15 @@ class CountryController {
 
             const country = await Country.findByPk(id);
             if (!country) {
-                return next(ApiError.badRequest('Country not found'));
+                return next(ApiError.notFound('Country not found'));
             }
 
             country.name = name || country.name;
             await country.save();
 
-            return res.status(200).json(country);
+            res.status(200).json(country);
         } catch (error) {
-            return next(ApiError.internal(error));
+            next(ApiError.internal(error));
         }
     }
 
@@ -87,13 +89,13 @@ class CountryController {
             const country = await Country.findByPk(id);
 
             if (!country) {
-                return next(ApiError.badRequest('Country not found'));
+                return next(ApiError.notFound('Country not found'));
             }
 
             await country.destroy();
-            return res.status(200).json({ message: 'Country deleted successfully' });
+            res.status(200).json({ message: 'Country deleted successfully' });
         } catch (error) {
-            return next(ApiError.internal(error));
+            next(ApiError.internal(error));
         }
     }
 };

@@ -36,7 +36,7 @@ class UserController {
             
             res.cookie('refreshToken', tokens.refreshToken, {maxAge: process.env.REFRESH_TOKEN_MAX_AGE, httpOnly: true})
 
-            return res.status(201).json({ message: 'User registered successfully.', user: userDto, ...tokens });
+            res.status(201).json({ message: 'User registered successfully.', user: userDto, ...tokens });
         } catch (e) {
             next(ApiError.badRequest(e.message))
         }
@@ -67,7 +67,7 @@ class UserController {
 
             res.cookie('refreshToken', tokens.refreshToken, {maxAge: process.env.REFRESH_TOKEN_MAX_AGE, httpOnly: true})
 
-            return res.json({ message: 'Login successful', user: userDto, ...tokens });
+            res.json({ message: 'Login successful', user: userDto, ...tokens });
         } catch(e) {
             next(ApiError.internal("An error occurred during login"));
         }
@@ -80,7 +80,7 @@ class UserController {
             await tokenService.removeToken(refreshToken);
             res.clearCookie(process.env.REFRESH_TOKEN);
             
-            return res.json('Successful logout');
+            res.json('Successful logout');
         } catch (e) {
             next(ApiError.internal("An error occurred during logout"));
         }
@@ -108,7 +108,7 @@ class UserController {
             await tokenService.saveToken(userDto.id, tokens.refreshToken);
             res.cookie(process.env.REFRESH_TOKEN, tokens.refreshToken, {maxAge: process.env.REFRESH_TOKEN_MAX_AGE, httpOnly: true})
             
-            return res.json({ user: userDto, ...tokens });
+            res.json({ user: userDto, ...tokens });
         } catch (e) {
             next(ApiError.internal("An error occurred during refreshing tokens"));
         }
