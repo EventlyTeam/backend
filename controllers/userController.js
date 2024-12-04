@@ -1,4 +1,3 @@
-const passport = require('passport')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer')
@@ -29,10 +28,18 @@ class UserController {
             }
             
             const hashedPassword = await bcrypt.hash(password, 5)
-            const newUser = await User.create({ username, password: hashedPassword, email: email, birthday: birthday });
+            const newUser = await User.create(
+                { username, password: hashedPassword, email: email, birthday: birthday },
+                { include: {model: Role, attributes: ['name']}
+            });
             
-            const userDto = new UserDto(newUser.dataValues);
+            const userData = await User.findByPk(newUser.id, {
+                include: { model: Role, attributes: ['name'] }
+            });
+
+            const userDto = new UserDto(userData.dataValues);
             const tokens = tokenService.generateTokens({...userDto});
+
             await tokenService.saveToken(userDto.id, tokens.refreshToken);
             
             res.cookie('refreshToken', tokens.refreshToken, {maxAge: process.env.REFRESH_TOKEN_MAX_AGE, httpOnly: true})

@@ -1430,10 +1430,15 @@ components:
         secretCode:
           type: string
           example: 'CONF2024'
+        location:
+          type: 'string'
+          example: 'Minsk'
         organizerId:
           type: integer
           example: 1
-        
+        cityId:
+          type: integer
+          example: 1
         categoryId:
           type: integer
           example: 3
