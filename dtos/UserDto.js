@@ -7,6 +7,6 @@ module.exports = class UserDto {
         this.email = model.email;
         this.id = model.id;
         this.emailVerified = model.emailVerified;
-        this.roleId = model.roleId;
+        this.role = model.Role.name;
     }
 }

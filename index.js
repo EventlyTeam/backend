@@ -4,7 +4,7 @@ const PORT = process.env.PORT || 5000
 const http = require('http');
 const { Server } = require('socket.io');
 
-const sequelize = require('./config/sequelize');
+require('./config/sequelize');
 const initializeApp = require('./config/app')
 
 const app = require('./app')
@@ -12,7 +12,7 @@ const server = http.createServer(app);
 const io = new Server(server);
 const chatSockets = require('./sockets/index')
 
-initializeApp(sequelize);
+initializeApp();
 chatSockets(io)
 
 server.listen(PORT, () => {

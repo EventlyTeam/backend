@@ -6,7 +6,7 @@ class FormatController {
 
     async createFormat(req, res, next) {
         try {
-            await verifyAdminRole(req.user.id, next);
+            await verifyAdminRole(req.user.role, next);
 
             const { title, description } = req.body;
             if (!title || !description) {
@@ -46,7 +46,7 @@ class FormatController {
 
     async updateFormat(req, res, next) {
         try {
-            await verifyAdminRole(req.user.id, next);
+            await verifyAdminRole(req.user.role, next);
 
             const { id } = req.params;
             const { title, description } = req.body;
@@ -73,7 +73,7 @@ class FormatController {
 
     async deleteFormat(req, res, next) {
         try {
-            await verifyAdminRole(req.user.id, next);
+            await verifyAdminRole(req.user.role, next);
 
             const { id } = req.params;
             const format = await Format.findByPk(id);

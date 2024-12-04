@@ -2,12 +2,8 @@ const Role = require('../models/role');
 const User = require('../models/user'); // Ensure User model is imported
 const bcrypt = require('bcrypt');
 
-module.exports = async (sequelize) => {
+module.exports = async () => {
   try {
-    await sequelize.authenticate();
-    console.log('Connection has been established successfully.');
-
-    await sequelize.sync({ alter: true });
     console.log('Database synced.');
 
     const roles = ['user', 'admin', 'moderator'];

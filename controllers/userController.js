@@ -8,6 +8,7 @@ const tokenService = require('../service/TokenService')
 const User = require('../models/user')
 const ApiError = require('../error/ApiError');
 const UserDto = require('../dtos/UserDto');
+const Role = require('../models/role');
 
 class UserController {
     async registration(req, res, next) {
@@ -51,7 +52,11 @@ class UserController {
 
             const { username, password } = req.body;
             
-            const user = await User.findOne({ where: { username } });
+            const user = await User.findOne({
+                where: { username },
+                include: { model: Role, attributes: ['name'] }
+            });
+            
             if (!user) {
                 return next(ApiError.notFound('No user with such username!'));
             }
