@@ -28,9 +28,8 @@ class UserController {
             }
             
             const hashedPassword = await bcrypt.hash(password, 5)
-            const newUser = await User.create(
-                { username, password: hashedPassword, email: email, birthday: birthday },
-                { include: {model: Role, attributes: ['name']}
+            const newUser = await User.create({
+                username, password: hashedPassword, email: email, birthday: birthday
             });
             
             const userData = await User.findByPk(newUser.id, {
@@ -171,7 +170,7 @@ class UserController {
 
             let mailOptions = {
                 from: process.env.EMAIL_USERNAME,
-                to: user.username,
+                to: user.email,
                 subject: 'Email Verification',
                 html: htmlMessage
             }
