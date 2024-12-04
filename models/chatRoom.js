@@ -13,4 +13,7 @@ const ChatRoom = sequelize.define('ChatRoom', {
     }
 });
 
+Event.hasMany(ChatRoom, { foreignKey: 'eventId', as: 'rooms' });
+ChatRoom.belongsTo(Event, { foreignKey: 'eventId' });
+
 module.exports = ChatRoom;

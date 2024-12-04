@@ -205,9 +205,12 @@ paths:
                   type: boolean
                   required: false
                   description: Whether the event is public.
-                locationId:
+                location:
+                  type: string
+                  example: 'Central Park, near the lake'
+                cityId:
                   type: integer
-                  description: ID of the event's location.
+                  description: ID of the event's city.
                 categoryId:
                   type: integer
                   description: ID of the event's category.
@@ -259,9 +262,12 @@ paths:
                   isPublic:
                     type: boolean
                     description: Whether the event is public.
-                  locationId:
+                  location:
+                    type: string
+                    description: Event location.
+                  cityId:
                     type: integer
-                    description: ID of the event's location.
+                    description: ID of the event's city.
                   categoryId:
                     type: integer
                     description: ID of the event's category.
@@ -323,8 +329,14 @@ paths:
           schema:
             type: string
         - in: query
-          name: locationId
-          description: Filter events by location ID
+          name: location
+          description: Search events by location
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: cityId
+          description: Filter events by city ID
           required: false
           schema:
             type: integer
@@ -446,7 +458,9 @@ paths:
                   type: integer
                 isPublic:
                   type: boolean
-                locationId:
+                location:
+                  type: string
+                cityId:
                   type: integer
                 categoryId:
                   type: integer
@@ -1419,9 +1433,7 @@ components:
         organizerId:
           type: integer
           example: 1
-        locationId:
-          type: integer
-          example: 2
+        
         categoryId:
           type: integer
           example: 3
@@ -1497,19 +1509,6 @@ components:
         description:
           type: string
           example: 'Hands-on training sessions.'
-
-    Location:
-      type: object
-      properties:
-        id:
-          type: integer
-          example: 1
-        details:
-          type: string
-          example: 'Central Park, near the lake'
-        cityId:
-          type: integer
-          example: 1
 
     Photo:
       type: object

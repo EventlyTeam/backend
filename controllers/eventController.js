@@ -21,15 +21,16 @@ class EventController {
                 capacity,
                 ageLimit,
                 isPublic,
-                locationId,
+                location,
+                cityId,
                 categoryId,
                 formatId,
                 photoDescriptions
             } = req.body;
 
-            if (!title || !startDate || !endDate || !locationId || !categoryId || !formatId) {
+            if (!title || !startDate || !endDate || !cityId || !categoryId || !formatId) {
                 return next(ApiError.badRequest(
-                    'Missing required fields: title, startDate, endDate, locationId, categoryId, and formatId are required.'
+                    'Missing required fields: title, startDate, endDate, cityId, categoryId, and formatId are required.'
                 ));
             }
 
@@ -45,8 +46,9 @@ class EventController {
                 ageLimit, 
                 isPublic,
                 secretCode,
+                location,
                 organizerId, 
-                locationId, 
+                cityId, 
                 categoryId, 
                 formatId
             }, {
@@ -80,14 +82,17 @@ class EventController {
     
     async getEvents(req, res, next) {
         try {
-            const { title, locationId, categoryId, formatId, start, end, limit = 10, offset = 0 } = req.query;
+            const { title, location, cityId, categoryId, formatId, start, end, limit = 10, offset = 0 } = req.query;
             const searchCriteria = {};
             
             if (title) {
                 searchCriteria.title = { [Op.iLike]: `%${title}%` };
             }
-            if (locationId) {
-                searchCriteria.locationId = { [Op.eq]: locationId };
+            if (location) {
+                searchCriteria.location = { [Op.iLike]: `%${location}%` };
+            }
+            if (cityId) {
+                searchCriteria.cityId = { [Op.eq]: cityId };
             }
             if (categoryId) {
                 searchCriteria.categoryId = { [Op.eq]: categoryId };
@@ -140,7 +145,7 @@ class EventController {
     
     async getEventById(req, res, next) {
         try {
-            const { id } = req.params.id;
+            const { id } = req.params;
             const event = await Event.findByPk(id);
         
             if (!event) {
@@ -177,13 +182,14 @@ class EventController {
                 capacity,
                 ageLimit,
                 isPublic,
-                locationId,
+                location,
+                cityId,
                 categoryId,
                 formatId,
                 photoDescriptions
             } = req.body;
 
-            const { id } = req.params.id;
+            const { id } = req.params;
             const organizerId = req.user.id;
     
             const event = await Event.findByPk(id);
@@ -203,7 +209,8 @@ class EventController {
                 capacity,
                 ageLimit,
                 isPublic,
-                locationId,
+                location,
+                cityId,
                 categoryId,
                 formatId
             };
@@ -233,7 +240,7 @@ class EventController {
             }
 
             await transaction.commit();
-            res.status(200).json('Event was updated successfully');
+            res.status(200).json({message: 'Event was updated successfully'});
         } catch (error) {
             await transaction.rollback();
             next(ApiError.badRequest(error.message));
@@ -242,7 +249,7 @@ class EventController {
     
     async deleteEvent(req, res, next) {
         try {
-            const { id } = req.params.id;
+            const { id } = req.params;
     
             const event = await Event.findByPk(id);
             const eventOrganizerId = event.organizerId;

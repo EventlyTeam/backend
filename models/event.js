@@ -1,9 +1,9 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/sequelize');
 const User = require('./user')
-const Location = require('./location')
 const Category = require('./category')
-const Format = require('./format')
+const Format = require('./format');
+const City = require('./city');
 
 const Event = sequelize.define('Event', {
   title: {
@@ -44,6 +44,10 @@ const Event = sequelize.define('Event', {
     allowNull: false,
     unique: true
   },
+  location: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
   organizerId: {
     type: DataTypes.INTEGER,
     allowNull: false,
@@ -52,11 +56,11 @@ const Event = sequelize.define('Event', {
         key: 'id'
     }
   },
-  locationId: {
+  cityId: {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {
-        model: Location,
+        model: City,
         key: 'id'
     }
   },
@@ -84,8 +88,8 @@ User.hasMany(Event, { foreignKey: 'organizerId' });
 Event.belongsTo(Format, { foreignKey: 'formatId' });
 Format.hasMany(Event, { foreignKey: 'formatId' });
 
-Event.belongsTo(Location, { foreignKey: 'locationId' });
-Location.hasMany(Event, { foreignKey: 'locationId' });
+Event.belongsTo(City, { foreignKey: 'cityId' });
+City.hasMany(Event, { foreignKey: 'cityId' });
 
 Event.belongsTo(Category, { foreignKey: 'categoryId' });
 Category.hasMany(Event, { foreignKey: 'categoryId' });
