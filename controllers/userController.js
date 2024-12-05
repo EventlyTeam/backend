@@ -152,7 +152,7 @@ class UserController {
             
             const verificationToken = jwt.sign({ id: user.id }, process.env.JWT_ACCESS_SECRET, { expiresIn: process.env.JWT_ACCESS_EXPIRATION });
     
-            const verificationUrl = `${req.protocol}://${req.get('host')}/api/user/verify-email?email=${user.username}&token=${verificationToken}`;
+            const verificationUrl = `${req.protocol}://${req.get('host')}/api/user/verify-email?email=${user.email}&token=${verificationToken}`;
             const htmlMessage = `<p>Hello! Verify your email by clicking on the following link</p>
                 <a href=${verificationUrl}>Verify email</a>
             `;
