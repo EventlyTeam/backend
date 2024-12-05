@@ -9,6 +9,7 @@ const ApiError = require('../error/ApiError');
 const UserDto = require('../dtos/UserDto');
 const Role = require('../models/role');
 const { Op } = require('sequelize');
+const verifyAdminRole = require('../utils/VerifyAdminRole')
 
 class UserController {
     async registration(req, res, next) {
@@ -214,6 +215,49 @@ class UserController {
             res.redirect(process.env.CLIENT_URL)
         } catch (error) {
             next(ApiError.internal('Error verifying email'));
+        }
+    }
+
+    async getAllUsers(req, res, next) {
+        try {
+            await verifyAdminRole(req.user.role, next);
+
+            const users = await User.findAll({
+                include: [
+                    {
+                        model: Role,
+                        where: {
+                            name: {
+                                [Op.ne]: 'admin',
+                            },
+                        },
+                        attributes: ['name'],
+                    },
+                ],
+            });
+
+            res.status(200).json(users);
+        } catch (error) {
+            next(ApiError.internal('Error retrieving users'));
+        }
+    }
+
+    async deleteUser(req, res, next) {
+        try {
+            await verifyAdminRole(req.user.role, next);
+
+            const { id } = req.params;
+            const user = await User.findByPk(id);
+
+            if (!user) {
+                return next(ApiError.badRequest('User not found'));
+            }
+
+            await user.destroy();
+            
+            res.status(200).json({ message: 'User deleted successfully' });
+        } catch (error) {
+            next(ApiError.internal('Error deleting user'));
         }
     }
 }

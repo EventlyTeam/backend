@@ -15,5 +15,7 @@ router.get('/google/callback', passport.authenticate('google', { session: false 
 router.post('/send-verification-email', authMiddleware, userController.sendVerificationEmail);
 router.get('/verify-email', userController.verifyEmail);
 router.get('/refresh', userController.refresh);
+router.get('/', authMiddleware, userController.getAllUsers);
+router.delete('/:id', authMiddleware, userController.deleteUser);
 
 module.exports = router
