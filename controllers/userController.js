@@ -8,6 +8,7 @@ const User = require('../models/user')
 const ApiError = require('../error/ApiError');
 const UserDto = require('../dtos/UserDto');
 const Role = require('../models/role');
+const { Op } = require('sequelize');
 
 class UserController {
     async registration(req, res, next) {
@@ -20,8 +21,13 @@ class UserController {
             const {username, password, email, birthday} = req.body;
 
             const user = await User.findOne({
-                where: { username, email }
-            })
+                where: {
+                    [Op.or]: [
+                        { username },
+                        { email }
+                    ]
+                }
+            });
 
             if (user) {
                 return next(ApiError.badRequest('User with such email or username exists!'))
@@ -45,7 +51,7 @@ class UserController {
 
             res.status(201).json({ message: 'User registered successfully.', user: userDto, ...tokens });
         } catch (e) {
-            next(ApiError.badRequest(e.message))
+            next(ApiError.internal(e.message))
         }
     }
 
@@ -97,7 +103,7 @@ class UserController {
         }
     }
 
-    async refresh() {
+    async refresh(req, res, next) {
         try {
             const {refreshToken} = req.cookies;
 
@@ -193,7 +199,7 @@ class UserController {
                 }
             });
             
-            const user = await User.findOne({ where: email });
+            const user = await User.findOne({ where: {email} });
             if (!user) {
                 return next(ApiError.badRequest('User not found'));
             }
