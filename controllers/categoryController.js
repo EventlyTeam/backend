@@ -1,13 +1,10 @@
 const ApiError = require('../error/ApiError');
 const Category = require('../models/category');
-const verifyAdminRole = require('../utils/VerifyAdminRole')
 
 class CategoryController {
 
     async createCategory(req, res, next) {
         try {
-            await verifyAdminRole(req.user.role, next);
-
             const { title, description } = req.body;
             if (!title || !description) {
                 return next(ApiError.badRequest('Title and description are required'));
@@ -46,8 +43,6 @@ class CategoryController {
 
     async updateCategory(req, res, next) {
         try {
-            await verifyAdminRole(req.user.role, next);
-
             const { id } = req.params;
             const { title, description } = req.body;
 
@@ -72,8 +67,6 @@ class CategoryController {
 
     async deleteCategory(req, res, next) {
         try {
-            await verifyAdminRole(req.user.role, next);
-
             const { id } = req.params;
             const category = await Category.findByPk(id);
 

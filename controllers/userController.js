@@ -9,7 +9,6 @@ const ApiError = require('../error/ApiError');
 const UserDto = require('../dtos/UserDto');
 const Role = require('../models/role');
 const { Op } = require('sequelize');
-const verifyAdminRole = require('../utils/VerifyAdminRole')
 
 class UserController {
     async registration(req, res, next) {
@@ -220,8 +219,6 @@ class UserController {
 
     async getAllUsers(req, res, next) {
         try {
-            await verifyAdminRole(req.user.role, next);
-
             const users = await User.findAll({
                 include: [
                     {
@@ -238,14 +235,13 @@ class UserController {
 
             res.status(200).json(users);
         } catch (error) {
+            console.log(error)
             next(ApiError.internal('Error retrieving users'));
         }
     }
 
     async deleteUser(req, res, next) {
         try {
-            await verifyAdminRole(req.user.role, next);
-
             const { id } = req.params;
             const user = await User.findByPk(id);
 

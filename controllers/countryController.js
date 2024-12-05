@@ -1,13 +1,10 @@
 const ApiError = require('../error/ApiError');
 const City = require('../models/city');
 const Country = require('../models/country');
-const verifyAdminRole = require('../utils/VerifyAdminRole')
 
 class CountryController {
     async createCountry(req, res, next) {
         try {
-            await verifyAdminRole(req.user.role, next);
-
             const { name } = req.body;
             if (!name) {
                 return next(ApiError.badRequest('Country name is required'));
@@ -58,8 +55,6 @@ class CountryController {
 
     async updateCountry(req, res, next) {
         try {
-            await verifyAdminRole(req.user.role, next);
-
             const { id } = req.params;
             const { name } = req.body;
 
@@ -83,8 +78,6 @@ class CountryController {
 
     async deleteCountry(req, res, next) {
         try {
-            await verifyAdminRole(req.user.role, next);
-
             const { id } = req.params;
             const country = await Country.findByPk(id);
 
