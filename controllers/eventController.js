@@ -157,15 +157,18 @@ class EventController {
                     eventId: event.id
                 }
             })
+            
+            let eventPhotos = [];
             if (photos.length > 0) {
-                event.photos = await Promise.all(
+                eventPhotos = await Promise.all(
                     photos.map(async photo => await ImageConverter.getBase64(photo.uri))
                 );
-            } else {
-                event.photos = [];
             }
     
-            res.status(200).json(event);
+            res.status(200).json({
+                ...event.dataValues,
+                photos: eventPhotos
+            });
         } catch (error) {
             next(ApiError.internal(error.message));
         }

@@ -12,7 +12,7 @@ const storage = multer.diskStorage({
 
         const filePath = `${uniqueSuffix}_${originalName}${extension}`
         cb(null, filePath);
-    },
+    }
 });
 
 const upload = multer({ storage: storage });

@@ -235,7 +235,6 @@ class UserController {
 
             res.status(200).json(users);
         } catch (error) {
-            console.log(error)
             next(ApiError.internal('Error retrieving users'));
         }
     }
